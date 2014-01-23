@@ -10,8 +10,9 @@ parser.cc
 parserbase.h
 scanner.cc
 scannerbase.h
-plugin64.so 
+plugin64.so
 cfgpp64
-plugin32.so 
+plugin32.so
 cfgpp32
 *~
+Makefile.cfg
