@@ -1,7 +1,7 @@
-test_files/*.cfg
-test_files/*.ast
-test_files/*.eval
-test_files/*.toks
+*.cfg
+*.ast
+*.eval
+*.toks
 *.out
 *.o
 cfglp
