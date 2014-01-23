@@ -2,4 +2,12 @@ test_files/*.cfg
 test_files/*.ast
 test_files/*.eval
 test_files/*.toks
-a.out
+*.out
+*.o
+cfglp
+parser.cc
+*.output
+parserbase.h
+scanner.cc
+scannerbase.h
+
