@@ -1,4 +1,4 @@
-goto <BB no.> - simple statement
+goto <BB no.> //simple statement
 
 if (cond.)
 	goto
@@ -19,11 +19,11 @@ assignment_statement : variable ’=’ variable ’;’
                               | variable '=' cond_expr ';'
 
 
-GO_TO : 'goto' basic_block_name ';'
+GO_TO : 'goto' < Name Integer_Name > ';'
 
 IF_STAT : IF '(' cond_expr ')' GOTO ELSE GOTO
 
-basic_block_name : '<' BB NUMBER '>'
-
-cond_expr: 
+cond : e op e
+e : Integer_num | variable | cond
+ 
 
