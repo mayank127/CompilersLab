@@ -6,4 +6,5 @@ main()
 		a = 6;
 	else
 		a = 4;
+	//jjhkh
 }
