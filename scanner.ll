@@ -40,7 +40,7 @@ if		{
 			return Parser::IF;
 		}
 else	{
-			store_token_name("else");
+			store_token_name("ELSE");
 			return Parser::ELSE;
 		}
 goto	{
