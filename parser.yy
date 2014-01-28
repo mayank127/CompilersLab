@@ -53,11 +53,7 @@
 %type <ast> variable
 %type <ast> constant*/
 
-%left OR
-%left AND
-%left EQ NE
-%left LT LE GT GE
-%right NOT
+
 
 
 %start program
@@ -219,7 +215,7 @@ basic_block_list:
 ;
 
 basic_block:
-	LT NAME INTEGER_NUMBER GT ':' executable_statement_list
+	'<' NAME INTEGER_NUMBER '>' ':' executable_statement_list
 	/*{
 		if (*$2 != "bb")
 		{
@@ -290,58 +286,63 @@ assignment_statement_list:
 ;
 
 assignment_statement:
-	variable '=' variable ';'
-	/*{
-		$$ = new Assignment_Ast($1, $3);
-
-		int line = get_line_number();
-		$$->check_ast(line);
-	}*/
-|
-	variable '=' constant ';'
-	/*{
-		$$ = new Assignment_Ast($1, $3);
-
-		int line = get_line_number();
-		$$->check_ast(line);
-	}*/
-|	variable '=' conditional_expression ';'
+	variable '=' expression ';'
 ;
 
 goto_statement:
-	GOTO LT NAME INTEGER_NUMBER GT ';'
+	GOTO '<' NAME INTEGER_NUMBER '>' ';'
 ;
 
 if_statement:
 	IF '(' conditional_expression ')' goto_statement ELSE goto_statement
 ;
 
-conditional_expression:
-	NOT expression
-|
-	expression GT expression
-|
-	expression LT expression
-|
-	expression GE expression
-|
-	expression LE expression
-|
-	expression EQ expression
-|
-	expression NE expression
-|
-	expression AND expression
-|
-	expression OR expression
+expression:
+	conditional_expression
 ;
 
-expression:
+conditional_expression:
+	conditional_expression '|' '|' and_expression
+|
+	and_expression
+;
+
+and_expression:
+	and_expression '&' '&' equal_expression
+|
+	equal_expression
+;
+
+equal_expression:
+	equal_expression '=' '=' comparison_expression
+|
+	equal_expression '!' '=' comparison_expression
+|
+	comparison_expression
+;
+
+comparison_expression:
+	comparison_expression '<' not_expression
+|
+	comparison_expression '>' not_expression
+|
+	comparison_expression '<' '=' not_expression
+|
+	comparison_expression '>' '=' not_expression
+|
+	not_expression
+;
+
+not_expression:
+	'!' basic_expression
+|
+	basic_expression
+;
+
+basic_expression:
 	constant
 |
 	variable
-|
-	conditional_expression
 ;
 variable:
 	NAME
