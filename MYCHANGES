@@ -1,0 +1,39 @@
+Mayank Meghwanshi 110050012
+Vivek Agarwal 110050042
+
+1. We have made the following changes in the grammer rules in the file parser.yy
+
+assignment_statement  -->	variable = expression ;
+
+goto_statement -->	GOTO < NAME INTEGER_NUMBER > 
+
+if_statement -->	IF (conditional_expression) goto_statement ELSE goto_statement
+
+expression -->	conditional_expression
+
+conditional_expression -->	conditional_expression || and_expression | 	and_expression
+
+
+and_expression  -->	and_expression && equal_expression | equal_expression
+
+
+equal_expression -->	equal_expression == comparison_expression|
+	equal_expression != comparison_expression | comparison_expression
+
+
+comparison_expression  --> comparison_expression < not_expression|
+	comparison_expression > not_expression|
+	comparison_expression <= not_expression|
+	comparison_expression >= not_expression|
+	not_expression
+
+
+not_expression --> ! basic_expression | basic_expression
+
+
+basic_expression -->	constant |  variable
+
+2. We have added new token specifications in file Scanner.ll :
+	IF, ELSE, GOTO
+3. In METACHAR, we have added the following symbols :
+	!,&,|
