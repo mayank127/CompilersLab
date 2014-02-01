@@ -50,10 +50,10 @@
 %type <ast_list> executable_statement_list
 %type <ast_list> assignment_statement_list
 %type <ast> assignment_statement
+%type <ast> if_statement
+%type <ast> goto_statement
 %type <ast> expression
 %type <ast> conditional_expression
-%type <ast> goto_statement
-%type <ast> if_statement
 %type <ast> and_expression
 %type <ast> equal_expression
 %type <ast> comparison_expression
@@ -332,7 +332,7 @@ goto_statement:
 if_statement:
 	IF '(' conditional_expression ')' goto_statement ELSE goto_statement
 	{
-		$$ = new IF_Else_Stmt_Ast($3, $5, $7);
+		$$ = new If_Else_Stmt_Ast($3, $5, $7);
 	}
 ;
 
@@ -347,6 +347,8 @@ conditional_expression:
 	conditional_expression '|' '|' and_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, OR);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	and_expression
@@ -359,6 +361,8 @@ and_expression:
 	and_expression '&' '&' equal_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, AND);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	equal_expression
@@ -371,11 +375,15 @@ equal_expression:
 	equal_expression '=' '=' comparison_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, EQ);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	equal_expression '!' '=' comparison_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, NE);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	comparison_expression
@@ -388,22 +396,30 @@ comparison_expression:
 	comparison_expression '<' not_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $3, LT);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	comparison_expression '>' not_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $3, GT);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	comparison_expression '<' '=' not_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, LE);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 
 |
 	comparison_expression '>' '=' not_expression
 	{
 		$$ = new Relational_Expr_Ast($1, $4, GE);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	not_expression
@@ -416,6 +432,8 @@ not_expression:
 	'!' basic_expression
 	{
 		$$ = new Relational_Expr_Ast($2, NULL, NOT);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	basic_expression

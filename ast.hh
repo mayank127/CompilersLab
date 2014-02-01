@@ -53,7 +53,7 @@ public:
 	virtual void set_value_of_evaluation(Local_Environment & eval_env, Eval_Result & result);
 	virtual Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer) = 0;
 
-	virtual int get_constant() = 0;
+	virtual int get_block_number();
 };
 
 class Assignment_Ast:public Ast
@@ -81,6 +81,9 @@ public:
 	Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs, Relation_Op temp_op);
 	~Relational_Expr_Ast();
 
+	Data_Type get_data_type();
+	bool check_ast(int line);
+
 	Relation_Op get_relational_op();
 	void print_ast(ostream & file_buffer);
 	Eval_Result & evaluate(Local_Environment& eval_env, ostream& file_buffer);
@@ -89,9 +92,9 @@ public:
 
 
 class Goto_Stmt_Ast: public Ast {
-	Ast* block_number;
+	int block_number;
 public:
-	Goto_Stmt_Ast(Ast* temp_block_num);
+	Goto_Stmt_Ast(int temp_block_num);
 	~Goto_Stmt_Ast();
 
 	int get_block_number();
@@ -133,7 +136,7 @@ public:
 
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
 
-	T get_constant();
+	// T get_constant();
 };
 
 class Return_Ast:public Ast

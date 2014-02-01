@@ -33,7 +33,7 @@ using namespace std;
 #include"symbol-table.hh"
 #include"ast.hh"
 
-string Op_Array[]={"NOT","OR","LE","LT","GT","GE","EQ","NE"};
+string Op_Array[]={"NOT","OR","AND","LE","LT","GT","GE","EQ","NE"};
 
 Ast::Ast()
 {}
@@ -64,6 +64,10 @@ Eval_Result & Ast::get_value_of_evaluation(Local_Environment & eval_env)
 void Ast::set_value_of_evaluation(Local_Environment & eval_env, Eval_Result & result)
 {
 	report_internal_error("Should not reach, Ast : set_value_of_evaluation");
+}
+int Ast::get_block_number()
+{
+	report_internal_error("Should not reach, Ast : get_block_number");
 }
 
 ////////////////////////////////////////////////////////////////
@@ -126,66 +130,7 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 
 	return result;
 }
-////////////////////////////////////////////////////////////////
-Relational_Expr_Ast::Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs,Relation_Op temp_op){
-	lhs = temp_lhs;
-	rhs = temp_rhs;
-	op = temp_op;
-}
 
-Relation_Op Relational_Expr_Ast::get_relational_op(){
-	return op;
-}
-
-void Relational_Expr_Ast::print_ast(ostream & file_buffer){
-	file_buffer << AST_SPACE << "Condition:";
-	file_buffer << AST_SPACE <<Op_Array[op]<<endl;
-
-	file_buffer << AST_NODE_SPACE"LHS (";
-	lhs->print_ast(file_buffer);
-	file_buffer << ")\n";
-
-	if(op!=NOT){
-		file_buffer << AST_NODE_SPACE << "RHS (";
-		rhs->print_ast(file_buffer);
-		file_buffer << ")\n";
-	}
-
-}
-Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
-	Eval_Result *result=NULL ;
-	return *result;
-}
-
-Relational_Expr_Ast::~Relational_Expr_Ast()
-{
-	delete lhs;
-	delete rhs;
-}
-
-/////////////////////////////////////////////////////////////////
-
-Goto_Stmt_Ast::Goto_Stmt_Ast(Ast* temp_block_number){
-	block_number = temp_block_number;
-}
-
-Goto_Stmt_Ast::~Goto_Stmt_Ast(){
-	delete block_number;
-}
-
-int Goto_Stmt_Ast::get_block_number(){
-	return block_number->get_constant();
-}
-
-void Goto_Stmt_Ast::print_ast(ostream & file_buffer){
-	file_buffer << AST_NODE_SPACE << "Goto statement:\n";
-	file_buffer << AST_NODE_SPACE <<"Successor: "<<get_block_number()<<endl;
-}
-
-Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
-	Eval_Result *result=NULL ;
-	return *result;
-}
 
 
 
@@ -310,11 +255,6 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 		return result;
 	}
 }
-template <class DATA_TYPE>
-DATA_TYPE Number_Ast<DATA_TYPE>::get_constant(){
-	return constant;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 
 Return_Ast::Return_Ast()
@@ -351,10 +291,10 @@ If_Else_Stmt_Ast::~If_Else_Stmt_Ast()
 void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
 {
 
-	file_buffer << AST_SPACE << "If_Else Statement:\n";
+	file_buffer << AST_SPACE << "If_Else statement:";
 
 	condition->print_ast(file_buffer);
-
+	file_buffer<<endl;
 	file_buffer << AST_NODE_SPACE << "True Successor: "<<true_goto->get_block_number()<<endl;
 	file_buffer << AST_NODE_SPACE << "False Successor: "<<false_goto->get_block_number()<<endl;
 
@@ -363,4 +303,82 @@ void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
 Eval_Result & If_Else_Stmt_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
 
+}
+
+////////////////////////////////////////////////////////////////
+Relational_Expr_Ast::Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs,Relation_Op temp_op){
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	op = temp_op;
+}
+
+Relation_Op Relational_Expr_Ast::get_relational_op(){
+	return op;
+}
+
+Data_Type Relational_Expr_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Relational_Expr_Ast::check_ast(int line)
+{
+	if (op == NOT || lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	report_error("Relational Expression data type not compatible", line);
+}
+
+void Relational_Expr_Ast::print_ast(ostream & file_buffer){
+	file_buffer<<"\n";
+	file_buffer << AST_NODE_SPACE << "Condition: ";
+	file_buffer <<Op_Array[op]<<endl;
+
+	file_buffer <<AST_NODE_SPACE<<"   LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+
+	if(op!=NOT){
+		file_buffer << AST_NODE_SPACE << "   RHS (";
+		rhs->print_ast(file_buffer);
+		file_buffer << ")";
+	}
+
+}
+
+Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
+	Eval_Result *result=NULL ;
+	return *result;
+}
+
+Relational_Expr_Ast::~Relational_Expr_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+/////////////////////////////////////////////////////////////////
+
+Goto_Stmt_Ast::Goto_Stmt_Ast(int temp_block_number){
+	block_number = temp_block_number;
+}
+
+Goto_Stmt_Ast::~Goto_Stmt_Ast(){
+}
+
+int Goto_Stmt_Ast::get_block_number(){
+	return block_number;
+}
+
+void Goto_Stmt_Ast::print_ast(ostream & file_buffer){
+	file_buffer << AST_SPACE << "Goto statement:\n";
+	file_buffer << AST_NODE_SPACE <<"Successor: "<<get_block_number()<<endl;
+}
+
+Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
+	Eval_Result *result=NULL ;
+	return *result;
 }
