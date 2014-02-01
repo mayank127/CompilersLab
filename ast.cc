@@ -102,7 +102,7 @@ bool Assignment_Ast::check_ast(int line)
 
 void Assignment_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer << AST_SPACE << "Asgn:\n";
+	file_buffer  <<AST_SPACE << "Asgn:\n";
 
 	file_buffer << AST_NODE_SPACE"LHS (";
 	lhs->print_ast(file_buffer);
@@ -127,8 +127,9 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 	print_ast(file_buffer);
 
 	lhs->print_value(eval_env, file_buffer);
-
-	return result;
+	Eval_Result & zero_result = *(new Eval_Result_Value_Int());
+	zero_result.set_value(0);
+	return zero_result;
 }
 
 
@@ -159,7 +160,7 @@ void Name_Ast::print_value(Local_Environment & eval_env, ostream & file_buffer)
 	Eval_Result_Value * loc_var_val = eval_env.get_variable_value(variable_name);
 	Eval_Result_Value * glob_var_val = interpreter_global_table.get_variable_value(variable_name);
 
-	file_buffer << "\n" << AST_SPACE << variable_name << " : ";
+	file_buffer << AST_SPACE << variable_name << " : ";
 
 	if (!eval_env.is_variable_defined(variable_name) && !interpreter_global_table.is_variable_defined(variable_name))
 		file_buffer << "undefined";
@@ -271,6 +272,8 @@ void Return_Ast::print_ast(ostream & file_buffer)
 Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
 	Eval_Result & result = *new Eval_Result_Value_Int();
+	result.set_value(-1);
+	print_ast(file_buffer);
 	return result;
 }
 
@@ -286,11 +289,14 @@ If_Else_Stmt_Ast::If_Else_Stmt_Ast(Ast * condition_temp, Ast * true_goto_temp, A
 	false_goto = false_goto_temp;
 }
 If_Else_Stmt_Ast::~If_Else_Stmt_Ast()
-{}
+{
+	delete condition;
+	delete true_goto;
+	delete false_goto;
+}
 
 void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
 {
-
 	file_buffer << AST_SPACE << "If_Else statement:";
 
 	condition->print_ast(file_buffer);
@@ -302,7 +308,18 @@ void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
 
 Eval_Result & If_Else_Stmt_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
-
+	print_ast(file_buffer);
+	Eval_Result & result = condition->evaluate(eval_env, file_buffer);
+	file_buffer<<AST_SPACE;
+	if(result.get_value() == 0){
+		file_buffer<<"Condition False : Goto (BB "<<false_goto->get_block_number()<<")"<<endl;
+		result.set_value(false_goto->get_block_number());
+	}
+	else{
+		file_buffer<<"Condition True : Goto (BB "<<true_goto->get_block_number()<<")"<<endl;
+		result.set_value(true_goto->get_block_number());
+	}
+	return result;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -350,8 +367,42 @@ void Relational_Expr_Ast::print_ast(ostream & file_buffer){
 }
 
 Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
-	Eval_Result *result=NULL ;
-	return *result;
+	Eval_Result & resultLeft = lhs->evaluate(eval_env, file_buffer);
+	Eval_Result & result = * new Eval_Result_Value_Int();
+	if(rhs==NULL){
+		result.set_value(!resultLeft.get_value());
+		return result;
+	}
+
+	Eval_Result & resultRight = rhs->evaluate(eval_env, file_buffer);
+
+	switch(op) {
+		case OR:
+			result.set_value(resultLeft.get_value() || resultRight.get_value());
+			break;
+		case AND:
+			result.set_value(resultLeft.get_value() && resultRight.get_value());
+			break;
+		case LE:
+			result.set_value(resultLeft.get_value() <= resultRight.get_value());
+			break;
+		case LT:
+			result.set_value(resultLeft.get_value() < resultRight.get_value());
+			break;
+		case GT:
+			result.set_value(resultLeft.get_value() > resultRight.get_value());
+			break;
+		case GE:
+			result.set_value(resultLeft.get_value() >= resultRight.get_value());
+			break;
+		case EQ:
+			result.set_value(resultLeft.get_value() == resultRight.get_value());
+			break;
+		case NE:
+			result.set_value(resultLeft.get_value() != resultRight.get_value());
+			break;
+	}
+	return result;
 }
 
 Relational_Expr_Ast::~Relational_Expr_Ast()
@@ -379,6 +430,9 @@ void Goto_Stmt_Ast::print_ast(ostream & file_buffer){
 }
 
 Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
-	Eval_Result *result=NULL ;
-	return *result;
+	Eval_Result & result = * new Eval_Result_Value_Int();
+	result.set_value(block_number);
+	print_ast(file_buffer);
+	file_buffer<<AST_SPACE<<"GOTO (BB "<<block_number<<")\n";
+	return result;
 }

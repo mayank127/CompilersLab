@@ -42,6 +42,7 @@
 bool bb_repeat_check(list<Basic_Block *> * bb_list, int bb_number);
 
 Procedure * current_procedure;
+vector<int> goto_numbers;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -89,6 +90,21 @@ inline void Parser::bb_strictly_increasing_order_check(list<Basic_Block *> * bb_
 	}
 }
 
+inline void Parser::bb_check_goto_number_exist(list<Basic_Block *> * bb_list)
+{
+  int size = bb_list->size() + 1;
+  vector<int>::iterator i;
+  for(i = goto_numbers.begin(); i != goto_numbers.end(); i++)
+  {
+
+    if ((*i) < 2 || (*i) > size)
+    {
+      char buffer[128];
+      sprintf(buffer, "bb %d doesn't exist", (*i));
+      report_error(buffer, NOLINE);
+    }
+  }
+}
 ///////////////////////////////////////////////////////////////////
 
 #endif

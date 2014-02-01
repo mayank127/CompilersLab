@@ -71,7 +71,7 @@ Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file
 	{
 		if((*i) == NULL)
 			report_error ("Ast pointer seems to be NULL", NOLINE);
-
+		file_buffer<<endl;
 		result = &((*i)->evaluate(eval_env, file_buffer)); 
 	}
 

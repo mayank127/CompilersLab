@@ -120,7 +120,9 @@ procedure_body:
 			report_error("Atleast 1 basic block should have a return statement", line);
 		}
 
-		current_procedure->set_basic_block_list(*$4);		//TODO why $4??
+		current_procedure->set_basic_block_list(*$4);
+
+		bb_check_goto_number_exist($4);
 
 		delete $4;
 	}
@@ -134,6 +136,7 @@ procedure_body:
 		}
 
 		current_procedure->set_basic_block_list(*$2);
+		bb_check_goto_number_exist($2);
 
 		delete $2;
 	}
@@ -324,6 +327,7 @@ goto_statement:
 	GOTO BASIC_BLOCK ';'
 	{
 		$$ = new Goto_Stmt_Ast($2);
+		goto_numbers.push_back($2);
 	}
 ;
 

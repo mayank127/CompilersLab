@@ -96,22 +96,36 @@ Basic_Block & Procedure::get_start_basic_block()
 	return **i;
 }
 
-Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb)
+Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb, int previous_result)
 {
 	bool flag = false;
-
-	list<Basic_Block *>::iterator i;
-	for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
+	if(previous_result == 0)
 	{
-		if((*i)->get_bb_number() == current_bb.get_bb_number())
+		list<Basic_Block *>::iterator i;
+		for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
 		{
-			flag = true;
-			continue;
+			if((*i)->get_bb_number() == current_bb.get_bb_number())
+			{
+				flag = true;
+				continue;
+			}
+			if (flag)
+				return (*i);
 		}
-		if (flag)
-			return (*i);
 	}
-	
+	else if(previous_result == -1) return NULL;
+	else
+	{
+		list<Basic_Block *>::iterator i;
+		for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
+		{
+			if((*i)->get_bb_number() == previous_result)
+			{
+				return *i;
+			}
+		}
+	}
+
 	return NULL;
 }
 
@@ -119,19 +133,19 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer)
 {
 	Local_Environment & eval_env = *new Local_Environment();
 	local_symbol_table.create(eval_env);
-	
+
 	Eval_Result * result = NULL;
 
 	file_buffer << PROC_SPACE << "Evaluating Procedure " << name << "\n";
 	file_buffer << LOC_VAR_SPACE << "Local Variables (before evaluating):\n";
 	eval_env.print(file_buffer);
 	file_buffer << "\n";
-	
+
 	Basic_Block * current_bb = &(get_start_basic_block());
 	while (current_bb)
 	{
 		result = &(current_bb->evaluate(eval_env, file_buffer));
-		current_bb = get_next_bb(*current_bb);		
+		current_bb = get_next_bb(*current_bb, result->get_value());
 	}
 
 	file_buffer << "\n\n";
