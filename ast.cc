@@ -33,6 +33,8 @@ using namespace std;
 #include"symbol-table.hh"
 #include"ast.hh"
 
+string Op_Array[]={"NOT","OR","LE","LT","GT","GE","EQ","NE"};
+
 Ast::Ast()
 {}
 
@@ -124,8 +126,70 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 
 	return result;
 }
+////////////////////////////////////////////////////////////////
+Relational_Expr_Ast::Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs,Relation_Op temp_op){
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	op = temp_op;
+}
+
+Relation_Op Relational_Expr_Ast::get_relational_op(){
+	return op;
+}
+
+void Relational_Expr_Ast::print_ast(ostream & file_buffer){
+	file_buffer << AST_SPACE << "Condition:";
+	file_buffer << AST_SPACE <<Op_Array[op]<<endl;
+
+	file_buffer << AST_NODE_SPACE"LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+
+	if(op!=NOT){
+		file_buffer << AST_NODE_SPACE << "RHS (";
+		rhs->print_ast(file_buffer);
+		file_buffer << ")\n";
+	}
+
+}
+Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
+	Eval_Result *result=NULL ;
+	return *result;
+}
+
+Relational_Expr_Ast::~Relational_Expr_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
 /////////////////////////////////////////////////////////////////
 
+Goto_Stmt_Ast::Goto_Stmt_Ast(Ast* temp_block_number){
+	block_number = temp_block_number;
+}
+
+Goto_Stmt_Ast::~Goto_Stmt_Ast(){
+	delete block_number;
+}
+
+int Goto_Stmt_Ast::get_block_number(){
+	return block_number->get_constant();
+}
+
+void Goto_Stmt_Ast::print_ast(ostream & file_buffer){
+	file_buffer << AST_NODE_SPACE << "Goto statement:\n";
+	file_buffer << AST_NODE_SPACE <<"Successor: "<<get_block_number()<<endl;
+}
+
+Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
+	Eval_Result *result=NULL ;
+	return *result;
+}
+
+
+
+////////////////////////////////////////////////////////
 Name_Ast::Name_Ast(string & name, Symbol_Table_Entry & var_entry)
 {
 	variable_name = name;
@@ -245,6 +309,10 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 
 		return result;
 	}
+}
+template <class DATA_TYPE>
+DATA_TYPE Number_Ast<DATA_TYPE>::get_constant(){
+	return constant;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
