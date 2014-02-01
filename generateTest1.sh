@@ -18,5 +18,5 @@ FILES=./test_files/1/*.ecfg
 for f in $FILES
 do
 	echo $f
-	./cfglp -tokens -eval -ast $f
+	./cfglp -tokens -ast $f
 done

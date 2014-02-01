@@ -37,11 +37,21 @@
 	Basic_Block * basic_block;
 	list<Basic_Block *> * basic_block_list;
 	Procedure * procedure;
+	Relation_Op relation_op;
 };
 
-%token <integer_value> INTEGER_NUMBER
+%token <integer_value> INTEGER_NUMBER BASIC_BLOCK
 %token <string_value> NAME
-%token RETURN INTEGER IF ELSE GOTO
+
+%token RETURN INTEGER IF ELSE GOTO ASSIGN_OP
+
+%left <relation_op> OR
+%left <relation_op> AND
+%left <relation_op> EQ NE
+%left <relation_op> GT GE LE LT
+%right <relation_op> NOT
+
+
 
 %type <symbol_table> declaration_statement_list
 %type <symbol_entry> declaration_statement
@@ -54,14 +64,8 @@
 %type <ast> goto_statement
 %type <ast> expression
 %type <ast> conditional_expression
-%type <ast> and_expression
-%type <ast> equal_expression
-%type <ast> comparison_expression
-%type <ast> not_expression
-%type <ast> basic_expression
 %type <ast> variable
 %type <ast> constant
-
 
 
 
@@ -224,30 +228,24 @@ basic_block_list:
 ;
 
 basic_block:
-	'<' NAME INTEGER_NUMBER '>' ':' executable_statement_list
+	BASIC_BLOCK ':' executable_statement_list
 	{
-		if (*$2 != "bb")
-		{
-			int line = get_line_number();
-			report_error("Not basic block lable", line);
-		}
 
-		if ($3 < 2)
+		if ($1 < 2)
 		{
 			int line = get_line_number();
 			report_error("Illegal basic block lable", line);
 		}
 
-		if ($6 != NULL)
-			$$ = new Basic_Block($3, *$6);
+		if ($3 != NULL)
+			$$ = new Basic_Block($1, *$3);
 		else
 		{
 			list<Ast *> * ast_list = new list<Ast *>;
-			$$ = new Basic_Block($3, *ast_list);
+			$$ = new Basic_Block($1, *ast_list);
 		}
 
-		delete $6;
-		delete $2;
+		delete $3;
 	}
 ;
 
@@ -313,7 +311,7 @@ assignment_statement_list:
 ;
 
 assignment_statement:
-	variable '=' expression ';'
+	variable ASSIGN_OP expression ';'
 	{
 		$$ = new Assignment_Ast($1, $3);
 
@@ -323,9 +321,9 @@ assignment_statement:
 ;
 
 goto_statement:
-	GOTO '<' NAME INTEGER_NUMBER '>' ';'
+	GOTO BASIC_BLOCK ';'
 	{
-		$$ = new Goto_Stmt_Ast($4);
+		$$ = new Goto_Stmt_Ast($2);
 	}
 ;
 
@@ -336,119 +334,84 @@ if_statement:
 	}
 ;
 
-expression:
-	conditional_expression
-	{
-		$$ = $1;
-	}
-;
 
 conditional_expression:
-	conditional_expression '|' '|' and_expression
+	NOT expression
 	{
-		$$ = new Relational_Expr_Ast($1, $4, OR);
+		$$ = new Relational_Expr_Ast($2, NULL, $1);
 		int line = get_line_number();
 		$$->check_ast(line);
 	}
 |
-	and_expression
+	expression GT expression
 	{
-		$$ = $1;
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression LT expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression GE expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression LE expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression EQ expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression NE expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression AND expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
+	}
+|
+	expression OR expression
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 ;
 
-and_expression:
-	and_expression '&' '&' equal_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $4, AND);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	equal_expression
-	{
-		$$ = $1;
-	}
-;
-
-equal_expression:
-	equal_expression '=' '=' comparison_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $4, EQ);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	equal_expression '!' '=' comparison_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $4, NE);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	comparison_expression
-	{
-		$$ = $1;
-	}
-;
-
-comparison_expression:
-	comparison_expression '<' not_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $3, LT);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	comparison_expression '>' not_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $3, GT);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	comparison_expression '<' '=' not_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $4, LE);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-
-|
-	comparison_expression '>' '=' not_expression
-	{
-		$$ = new Relational_Expr_Ast($1, $4, GE);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	not_expression
-	{
-		$$ = $1;
-	}
-;
-
-not_expression:
-	'!' basic_expression
-	{
-		$$ = new Relational_Expr_Ast($2, NULL, NOT);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	basic_expression
-	{
-		$$ = $1;
-	}
-;
-
-basic_expression:
+expression:
 	constant
 	{
 		$$ = $1;
 	}
 |
 	variable
+	{
+		$$ = $1;
+	}
+|
+	conditional_expression
 	{
 		$$ = $1;
 	}

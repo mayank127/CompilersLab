@@ -47,8 +47,73 @@ goto	{
 			store_token_name("GOTO");
 			return Parser::GOTO;
 		}
-
-[<>:{}();=!|&]	{
+\<bb\ [[:digit:]]+\>	{
+						store_token_name("BASIC BLOCK");
+						ParserBase::STYPE__ * val = getSval();
+						string m = matched();
+						m = m.substr(4,m.length()-2);
+						val->integer_value = atoi(m.c_str());
+						return Parser::BASIC_BLOCK;
+					}
+\|\|	{
+			store_token_name("OR");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = OR;
+			return Parser::OR;
+		}
+&&		{
+			store_token_name("AND");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = AND;
+			return Parser::AND;
+		}
+\<=		{
+			store_token_name("LE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = LE;
+			return Parser::LE;
+		}
+\>=		{
+			store_token_name("GE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = GE;
+			return Parser::GE;
+		}
+\>		{
+			store_token_name("GT");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = GT;
+			return Parser::GT;
+		}
+\<		{
+			store_token_name("LT");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = LT;
+			return Parser::LT;
+		}
+==		{
+			store_token_name("EQ");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = EQ;
+			return Parser::EQ;
+		}
+!=		{
+			store_token_name("NE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = NE;
+			return Parser::NE;
+		}
+!		{
+			store_token_name("NOT");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = NOT;
+			return Parser::NOT;
+		}
+=		{
+			store_token_name("ASSIGN_OP");
+			return Parser::ASSIGN_OP;
+		}
+[:{}();]	{
 			store_token_name("META CHAR");
 			return matched()[0];
 		}
