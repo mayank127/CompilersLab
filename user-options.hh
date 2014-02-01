@@ -51,6 +51,9 @@ class User_Options
 	ofstream output_file_buffer;
 
 	FILE * file_buffer;
+	string tokens_file_name;
+	string ast_file_name;
+	string output_file_name;
 
 public:
 	User_Options(); 
@@ -63,6 +66,7 @@ public:
 
 	string process_user_command_options(int argc, char * argv[]);
 	string get_file_name();
+	void delete_files();
 
 	void create_tokens_buffer();
 	void create_ast_buffer();

@@ -37,25 +37,25 @@ using namespace std;
 
 User_Options command_options;
 
-User_Options::User_Options() 
+User_Options::User_Options()
 {
 	show_tokens_selected = false;
 	show_ast_selected = false;
 	do_eval_selected = false;
 	demo_mode_selected = false;
-} 
+}
 
 User_Options::~User_Options()
 {
 	if (demo_mode_selected == false)
 	{
 		if (show_tokens_selected)
-			tokens_file_buffer.close(); 
+			tokens_file_buffer.close();
 
 		if (show_ast_selected)
-			ast_file_buffer.close(); 
+			ast_file_buffer.close();
 
-		output_file_buffer.close(); 
+		output_file_buffer.close();
 	}
 }
 
@@ -88,7 +88,7 @@ void User_Options::create_tokens_buffer()
 		tokens_buffer = &cout;
 
 	else
-		tokens_buffer = &tokens_file_buffer; 
+		tokens_buffer = &tokens_file_buffer;
 }
 
 void User_Options::create_ast_buffer()
@@ -100,15 +100,15 @@ void User_Options::create_ast_buffer()
 		ast_buffer = &cout;
 
 	else
-		ast_buffer = &ast_file_buffer; 
+		ast_buffer = &ast_file_buffer;
 }
 
 void User_Options::create_output_buffer()
-{ 
+{
 	if (demo_mode_selected)
 		output_buffer = &cout;
 	else
-		output_buffer = &output_file_buffer; 
+		output_buffer = &output_file_buffer;
 }
 
 ostream & User_Options::get_tokens_buffer()
@@ -140,12 +140,19 @@ string User_Options::get_file_name()
 	return source_file;
 }
 
+void User_Options::delete_files()
+{
+	remove (tokens_file_name.c_str());
+	remove (ast_file_name.c_str());
+	remove (output_file_name.c_str());
+}
+
 string User_Options::process_user_command_options(int argc, char * argv[])
 {
 	string input_file_name;
 
 	bool user_input_file_entered = false;
-	string user_input_file_name, tokens_file_name, ast_file_name, output_file_name;
+	string user_input_file_name;
 	char * user_input_file_c_string = NULL;
 
 	const string usage = "\n     Usage: cfglp [options] [file]\n\
@@ -157,28 +164,28 @@ string User_Options::process_user_command_options(int argc, char * argv[])
 			-d        Demo version. Use stdout for the outputs instead of files\n\n";
 
 	for (int i = 1; i < argc; i++)
-	{    
+	{
 		char * option = strdup(argv[i]);
 		if (!strncmp(option,"-",1))
 		{
 			if (!strcmp(option,"-d"))
 				demo_mode_selected = true;
 
-			else if (!strcmp(option,"-tokens")) 
+			else if (!strcmp(option,"-tokens"))
 				show_tokens_selected = true;
 
-			else if (!strcmp(option,"-ast")) 
+			else if (!strcmp(option,"-ast"))
 				show_ast_selected = true;
-			
+
 			else if (!strcmp(option,"-eval"))
 				do_eval_selected = true;
-			
+
 			else if (!(strcmp(option,"--help")) || !(strcmp(option,"-help")))
-			{        
+			{
 				cerr << usage;
 				exit(0);
 			}
-			else 
+			else
 			{
 				string error_message = "Unknown option `" + string(option) + "'" + usage;
 				report_internal_error(error_message);
@@ -189,8 +196,8 @@ string User_Options::process_user_command_options(int argc, char * argv[])
 			string error_message = "Only one input file name can be provided" + usage;
 			report_internal_error(error_message);
 		}
-		else    
-		{    
+		else
+		{
 			user_input_file_entered = true;
 			user_input_file_c_string = strdup(option);
 		}
@@ -211,15 +218,15 @@ string User_Options::process_user_command_options(int argc, char * argv[])
 	if (!user_input_file_name.c_str())
 		report_internal_error("Input file name cannot be NULL");
 
-	tokens_file_name = user_input_file_name + ".toks"; 
-	ast_file_name = user_input_file_name + ".ast"; 
+	tokens_file_name = user_input_file_name + ".toks";
+	ast_file_name = user_input_file_name + ".ast";
 
 	if (do_eval_selected)
-		output_file_name = user_input_file_name + ".eval"; 
+		output_file_name = user_input_file_name + ".eval";
 
-	remove (tokens_file_name.c_str()); 
-	remove (ast_file_name.c_str()); 
-	remove (output_file_name.c_str()); 
+	remove (tokens_file_name.c_str());
+	remove (ast_file_name.c_str());
+	remove (output_file_name.c_str());
 	remove ("out.toks");
 	remove ("out.ast");
 	remove ("out.eval");
@@ -227,12 +234,12 @@ string User_Options::process_user_command_options(int argc, char * argv[])
 	if (demo_mode_selected == false)
 	{
 		if (show_tokens_selected)
-			tokens_file_buffer.open(tokens_file_name.c_str()); 
+			tokens_file_buffer.open(tokens_file_name.c_str());
 
 		if (show_ast_selected)
-			ast_file_buffer.open(ast_file_name.c_str()); 
+			ast_file_buffer.open(ast_file_name.c_str());
 
-		output_file_buffer.open(output_file_name.c_str()); 
+		output_file_buffer.open(output_file_name.c_str());
 
 		if (show_tokens_selected && !tokens_file_buffer)
 	        	report_internal_error("Unable to open output file for tokens");
