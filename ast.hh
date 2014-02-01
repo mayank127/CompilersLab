@@ -116,4 +116,18 @@ public:
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
 };
 
+class If_Else_Stmt_Ast:public Ast
+{
+	Ast * condition;
+	Ast * true_goto;
+	Ast * false_goto;
+public:
+	If_Else_Stmt_Ast(Ast * condition_temp, Ast * true_goto_temp, Ast * false_goto_temp);
+	~If_Else_Stmt_Ast();
+
+	void print_ast(ostream & file_buffer);
+
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+};
+
 #endif

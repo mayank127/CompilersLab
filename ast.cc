@@ -167,7 +167,7 @@ void Name_Ast::print_value(Local_Environment & eval_env, ostream & file_buffer)
 	{
 		if (glob_var_val->get_result_enum() == int_result)
 		{
-			if (glob_var_val == NULL)
+			if (glob_var_val == NULL)			//TODO may be wrong
 				file_buffer << "0\n";
 			else
 				file_buffer << glob_var_val->get_value() << "\n";
@@ -267,3 +267,32 @@ Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_
 }
 
 template class Number_Ast<int>;
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+If_Else_Stmt_Ast::If_Else_Stmt_Ast(Ast * condition_temp, Ast * true_goto_temp, Ast * false_goto_temp)
+{
+	condition = condition_temp;
+	true_goto = true_goto_temp;
+	false_goto = false_goto_temp;
+}
+If_Else_Stmt_Ast::~If_Else_Stmt_Ast()
+{}
+
+void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
+{
+
+	file_buffer << AST_SPACE << "If_Else Statement:\n";
+
+	condition->print_ast(file_buffer);
+
+	file_buffer << AST_NODE_SPACE << "True Successor: "<<true_goto->get_block_number()<<endl;
+	file_buffer << AST_NODE_SPACE << "False Successor: "<<false_goto->get_block_number()<<endl;
+
+}
+
+Eval_Result & If_Else_Stmt_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+
+}

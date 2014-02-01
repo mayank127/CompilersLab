@@ -87,7 +87,6 @@ Procedure * Program::get_main_procedure(ostream & file_buffer)
 		if (i->second != NULL && i->second->get_proc_name() == "main")
 				return i->second;
 	}
-	
 	return NULL;
 }
 
