@@ -29,6 +29,8 @@
 #define AST_SPACE "         "
 #define AST_NODE_SPACE "            "
 
+enum Relation_Op { NOT,OR,AND,LE,LT,GT,GE,EQ,NE };
+
 using namespace std;
 
 class Ast;
@@ -50,6 +52,8 @@ public:
 	virtual Eval_Result & get_value_of_evaluation(Local_Environment & eval_env);
 	virtual void set_value_of_evaluation(Local_Environment & eval_env, Eval_Result & result);
 	virtual Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer) = 0;
+
+	virtual int get_constant() = 0;
 };
 
 class Assignment_Ast:public Ast
@@ -67,6 +71,32 @@ public:
 	void print_ast(ostream & file_buffer);
 
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+};
+
+class Relational_Expr_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+	Relation_Op op;
+public:
+	Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs, Relation_Op temp_op);
+	~Relational_Expr_Ast();
+
+	Relation_Op get_relational_op();
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment& eval_env, ostream& file_buffer);
+
+};
+
+
+class Goto_Stmt_Ast: public Ast {
+	Ast* block_number;
+public:
+	Goto_Stmt_Ast(Ast* temp_block_num);
+	~Goto_Stmt_Ast();
+
+	int get_block_number();
+	void print_ast(ostream& file_buffer);
+	Eval_Result & evaluate(Local_Environment& eval_env, ostream& file_buffer);	
 };
 
 class Name_Ast:public Ast
@@ -102,6 +132,8 @@ public:
 	void print_ast(ostream & file_buffer);
 
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+
+	T get_constant();
 };
 
 class Return_Ast:public Ast
