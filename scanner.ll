@@ -55,18 +55,6 @@ goto	{
 						val->integer_value = atoi(m.c_str());
 						return Parser::BASIC_BLOCK;
 					}
-\|\|	{
-			store_token_name("OR");
-			ParserBase::STYPE__ * val = getSval();
-			val->integer_value = OR;
-			return Parser::OR;
-		}
-&&		{
-			store_token_name("AND");
-			ParserBase::STYPE__ * val = getSval();
-			val->integer_value = AND;
-			return Parser::AND;
-		}
 \<=		{
 			store_token_name("LE");
 			ParserBase::STYPE__ * val = getSval();
@@ -102,12 +90,6 @@ goto	{
 			ParserBase::STYPE__ * val = getSval();
 			val->integer_value = NE;
 			return Parser::NE;
-		}
-!		{
-			store_token_name("NOT");
-			ParserBase::STYPE__ * val = getSval();
-			val->integer_value = NOT;
-			return Parser::NOT;
 		}
 =		{
 			store_token_name("ASSIGN_OP");

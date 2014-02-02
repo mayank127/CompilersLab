@@ -45,11 +45,8 @@
 
 %token RETURN INTEGER IF ELSE GOTO ASSIGN_OP
 
-%left <relation_op> OR
-%left <relation_op> AND
-%left <relation_op> EQ NE
-%left <relation_op> GT GE LE LT
-%right <relation_op> NOT
+%left <relation_op> NE EQ
+%left <relation_op> LT LE GT GE
 
 
 
@@ -340,13 +337,6 @@ if_statement:
 
 
 conditional_expression:
-	NOT expression
-	{
-		$$ = new Relational_Expr_Ast($2, NULL, $1);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
 	expression GT expression
 	{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
@@ -383,20 +373,6 @@ conditional_expression:
 	}
 |
 	expression NE expression
-	{
-		$$ = new Relational_Expr_Ast($1, $3, $2);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	expression AND expression
-	{
-		$$ = new Relational_Expr_Ast($1, $3, $2);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	expression OR expression
 	{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();

@@ -33,7 +33,7 @@ using namespace std;
 #include"symbol-table.hh"
 #include"ast.hh"
 
-string Op_Array[]={"NOT","OR","AND","LE","LT","GT","GE","EQ","NE"};
+string Op_Array[]={"LE","LT","GT","GE","EQ","NE"};
 
 Ast::Ast()
 {}
@@ -340,7 +340,7 @@ Data_Type Relational_Expr_Ast::get_data_type()
 
 bool Relational_Expr_Ast::check_ast(int line)
 {
-	if (op == NOT || lhs->get_data_type() == rhs->get_data_type())
+	if (lhs->get_data_type() == rhs->get_data_type())
 	{
 		node_data_type = lhs->get_data_type();
 		return true;
@@ -358,31 +358,19 @@ void Relational_Expr_Ast::print_ast(ostream & file_buffer){
 	lhs->print_ast(file_buffer);
 	file_buffer << ")\n";
 
-	if(op!=NOT){
-		file_buffer << AST_NODE_SPACE << "   RHS (";
-		rhs->print_ast(file_buffer);
-		file_buffer << ")";
-	}
+	file_buffer << AST_NODE_SPACE << "   RHS (";
+	rhs->print_ast(file_buffer);
+	file_buffer << ")";
+
 
 }
 
 Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
 	Eval_Result & resultLeft = lhs->evaluate(eval_env, file_buffer);
 	Eval_Result & result = * new Eval_Result_Value_Int();
-	if(rhs==NULL){
-		result.set_value(!resultLeft.get_value());
-		return result;
-	}
-
 	Eval_Result & resultRight = rhs->evaluate(eval_env, file_buffer);
 
 	switch(op) {
-		case OR:
-			result.set_value(resultLeft.get_value() || resultRight.get_value());
-			break;
-		case AND:
-			result.set_value(resultLeft.get_value() && resultRight.get_value());
-			break;
 		case LE:
 			result.set_value(resultLeft.get_value() <= resultRight.get_value());
 			break;

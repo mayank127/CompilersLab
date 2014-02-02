@@ -29,7 +29,7 @@
 #define AST_SPACE "         "
 #define AST_NODE_SPACE "            "
 
-enum Relation_Op { NOT,OR,AND,LE,LT,GT,GE,EQ,NE };
+enum Relation_Op {LE,LT,GT,GE,EQ,NE };
 
 using namespace std;
 
