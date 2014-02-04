@@ -271,7 +271,7 @@ void Return_Ast::print_ast(ostream & file_buffer)
 
 Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
-	Eval_Result & result = *new Eval_Result_Value_Int();
+	Eval_Result & result = *(new Eval_Result_BB());	
 	result.set_value(-1);
 	print_ast(file_buffer);
 	return result;

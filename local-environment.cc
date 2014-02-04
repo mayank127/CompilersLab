@@ -49,6 +49,16 @@ void Eval_Result::set_variable_status(bool def)
 {
 	report_internal_error("Should not reach, Eval_Result : set_variable_status");
 }
+
+void Eval_Result::set_result_enum(Result_Enum res)
+{
+	report_internal_error("Should not reach, Eval_Result : set_variable_status");
+}
+
+Result_Enum Eval_Result::get_result_enum()
+{
+	report_internal_error("Should not reach, Eval_Result : set_variable_status");
+}
 ///////////////////////////////////////////////////////////////////////////////
 
 Eval_Result_Value_Int::Eval_Result_Value_Int()

@@ -52,8 +52,8 @@ public:
 	virtual bool is_variable_defined();
 	virtual void set_variable_status(bool def);
 
-	virtual void set_result_enum(Result_Enum res) = 0;
-	virtual Result_Enum get_result_enum() = 0;
+	virtual void set_result_enum(Result_Enum res);
+	virtual Result_Enum get_result_enum();
 };
 
 class Eval_Result_Value:public Eval_Result
