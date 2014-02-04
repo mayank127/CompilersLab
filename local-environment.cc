@@ -49,7 +49,6 @@ void Eval_Result::set_variable_status(bool def)
 {
 	report_internal_error("Should not reach, Eval_Result : set_variable_status");
 }
-
 ///////////////////////////////////////////////////////////////////////////////
 
 Eval_Result_Value_Int::Eval_Result_Value_Int()
@@ -144,4 +143,37 @@ bool Local_Environment::does_variable_exist(string name)
 		return false;
 	else
 		return true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+Eval_Result_BB::Eval_Result_BB()
+{
+	value = 0;
+	defined = false;
+}
+
+Eval_Result_BB::~Eval_Result_BB()
+{ }
+
+void Eval_Result_BB::set_value(int number)
+{
+	value = number;
+	defined = true;
+}
+
+int Eval_Result_BB::get_value()
+{
+	return value;
+}
+
+void Eval_Result_BB::set_variable_status(bool def)
+{
+	defined = def;
+}
+
+bool Eval_Result_BB::is_variable_defined()
+{
+	return defined;
 }

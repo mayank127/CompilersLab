@@ -87,6 +87,21 @@ public:
 	Result_Enum get_result_enum();
 };
 
+class Eval_Result_BB:public Eval_Result
+{
+	int value;
+	bool defined;
+public:
+	Eval_Result_BB();
+	~Eval_Result_BB();
+
+	void set_value(int number);
+	int get_value();
+
+	void set_variable_status(bool def);
+	bool is_variable_defined();
+};
+
 class Local_Environment
 {
 	map<string, Eval_Result_Value *> variable_table;

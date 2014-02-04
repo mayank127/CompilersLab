@@ -127,7 +127,7 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 	print_ast(file_buffer);
 
 	lhs->print_value(eval_env, file_buffer);
-	Eval_Result & zero_result = *(new Eval_Result_Value_Int());
+	Eval_Result & zero_result = *(new Eval_Result_BB());
 	zero_result.set_value(0);
 	return zero_result;
 }
@@ -309,9 +309,10 @@ void If_Else_Stmt_Ast::print_ast(ostream & file_buffer)
 Eval_Result & If_Else_Stmt_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
 	print_ast(file_buffer);
-	Eval_Result & result = condition->evaluate(eval_env, file_buffer);
+	Eval_Result & condResult = condition->evaluate(eval_env, file_buffer);
+	Eval_Result & result = *(new Eval_Result_BB());
 	file_buffer<<AST_SPACE;
-	if(result.get_value() == 0){
+	if(condResult.get_value() == 0){
 		file_buffer<<"Condition False : Goto (BB "<<false_goto->get_block_number()<<")"<<endl;
 		result.set_value(false_goto->get_block_number());
 	}
@@ -418,7 +419,7 @@ void Goto_Stmt_Ast::print_ast(ostream & file_buffer){
 }
 
 Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
-	Eval_Result & result = * new Eval_Result_Value_Int();
+	Eval_Result & result = *(new Eval_Result_BB());
 	result.set_value(block_number);
 	print_ast(file_buffer);
 	file_buffer<<AST_SPACE<<"GOTO (BB "<<block_number<<")\n";
