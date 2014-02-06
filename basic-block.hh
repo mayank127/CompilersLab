@@ -38,6 +38,7 @@ class Basic_Block
 {
 	int id_number;
 	list<Ast *> statement_list;
+  bool successor;
 
 public:
 	Basic_Block(int basic_block_number, list<Ast *> & ast_list);
@@ -48,6 +49,9 @@ public:
 	void print_bb(ostream & file_buffer);
 
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+  void set_successor(bool successor);
+  bool get_successor();
+  void no_successor_error();
 };
 
 #endif

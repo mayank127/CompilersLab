@@ -34,14 +34,6 @@ using namespace std;
 
 void report_error(string error_message, int line);
 void print_error(string error_message, int exit_flag);
-
-#define report_internal_error(error_message)									\
-	{												\
-		stringstream message;									\
-		message << "(Internal Error) ";								\
-		message << __FILE__ << " : line " << __LINE__ << " :: error : " << error_message;	\
-		message << "\nTerminating";							\
-		print_error(message.str(), 1);								\
-	}
+void report_internal_error(string error_message);
 
 #endif

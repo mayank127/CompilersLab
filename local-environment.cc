@@ -120,7 +120,7 @@ void Local_Environment::print(ostream & file_buffer)
 		{
 			if (vi->is_variable_defined() == false)
 				file_buffer << VAR_SPACE << (*i).first << " : undefined" << "\n";
-		
+
 			else
 				file_buffer << VAR_SPACE << (*i).first << " : " << vi->get_value() << "\n";
 		}
@@ -154,7 +154,6 @@ bool Local_Environment::does_variable_exist(string name)
 	else
 		return true;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 

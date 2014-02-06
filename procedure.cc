@@ -145,7 +145,10 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer)
 	while (current_bb)
 	{
 		result = &(current_bb->evaluate(eval_env, file_buffer));
-		current_bb = get_next_bb(*current_bb, result->get_value());
+		if(result)
+			current_bb = get_next_bb(*current_bb, result->get_value());
+		else
+			current_bb = NULL;
 	}
 
 	file_buffer << "\n\n";

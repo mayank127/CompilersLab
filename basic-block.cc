@@ -58,6 +58,8 @@ void Basic_Block::print_bb(ostream & file_buffer)
 	list<Ast *>::iterator i;
 	for(i = statement_list.begin(); i != statement_list.end(); i++)
 		(*i)->print_ast(file_buffer);
+	if(!successor)
+		no_successor_error();
 }
 
 Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -74,6 +76,17 @@ Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file
 		file_buffer<<endl;
 		result = &((*i)->evaluate(eval_env, file_buffer)); 
 	}
-
+	if(!successor)
+		no_successor_error();
 	return *result;
+}
+
+void Basic_Block::set_successor(bool successor){
+	this->successor = successor;
+}
+bool Basic_Block::get_successor(){
+	return successor;
+}
+void Basic_Block::no_successor_error(){
+	report_internal_error("Atleast one of true, false, direct successors should be set");
 }

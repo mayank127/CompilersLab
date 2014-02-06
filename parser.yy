@@ -63,6 +63,7 @@
 %type <ast> conditional_expression
 %type <ast> variable
 %type <ast> constant
+%type <integer_value> basic_block_number
 
 
 
@@ -74,7 +75,6 @@ program:
 	declaration_statement_list procedure_name
 	{
 		program_object.set_global_table(*$1);
-		return_statement_used_flag = false;				// No return statement in the current procedure till now
 	}
 	procedure_body
 	{
@@ -88,7 +88,6 @@ program:
 |
 	procedure_name
 	{
-		return_statement_used_flag = false;				// No return statement in the current procedure till now
 	}
 	procedure_body
 	{
@@ -111,11 +110,6 @@ procedure_body:
 	}
 	basic_block_list '}'
 	{
-		if (return_statement_used_flag == false)
-		{
-			int line = get_line_number();
-			report_error("Atleast 1 basic block should have a return statement", line);
-		}
 
 		current_procedure->set_basic_block_list(*$4);
 
@@ -126,11 +120,6 @@ procedure_body:
 |
 	'{' basic_block_list '}'
 	{
-		if (return_statement_used_flag == false)
-		{
-			int line = get_line_number();
-			report_error("Atleast 1 basic block should have a return statement", line);
-		}
 
 		current_procedure->set_basic_block_list(*$2);
 		bb_check_goto_number_exist($2);
@@ -210,6 +199,7 @@ basic_block_list:
 		bb_strictly_increasing_order_check($$, $2->get_bb_number());
 
 		$$ = $1;
+		$$->back()->set_successor(true);
 		$$->push_back($2);
 	}
 |
@@ -228,21 +218,18 @@ basic_block_list:
 ;
 
 basic_block:
-	BASIC_BLOCK ':' executable_statement_list
+	basic_block_number ':' executable_statement_list
 	{
 
-		if ($1 < 2)
-		{
-			int line = get_line_number();
-			report_error("Illegal basic block lable", line);
-		}
-
-		if ($3 != NULL)
+		if ($3 != NULL){
 			$$ = new Basic_Block($1, *$3);
+			$$->set_successor(check_bb_has_successor);
+		}
 		else
 		{
 			list<Ast *> * ast_list = new list<Ast *>;
 			$$ = new Basic_Block($1, *ast_list);
+			$$->set_successor(false);
 		}
 
 		delete $3;
@@ -253,6 +240,7 @@ executable_statement_list:
 	assignment_statement_list
 	{
 		$$ = $1;
+		check_bb_has_successor = false;
 	}
 |
 	assignment_statement_list goto_statement
@@ -262,7 +250,7 @@ executable_statement_list:
 
 		else
 			$$ = new list<Ast *>;
-
+		check_bb_has_successor = true;
 		$$->push_back($2);
 	}
 |
@@ -273,7 +261,7 @@ executable_statement_list:
 
 		else
 			$$ = new list<Ast *>;
-
+		check_bb_has_successor = true;
 		$$->push_back($2);
 	}
 |
@@ -281,14 +269,13 @@ executable_statement_list:
 	{
 		Ast * ret = new Return_Ast();
 
-		return_statement_used_flag = true;					// Current procedure has an occurrence of return statement
 
 		if ($1 != NULL)
 			$$ = $1;
 
 		else
 			$$ = new list<Ast *>;
-
+		check_bb_has_successor = true;
 		$$->push_back(ret);
 	}
 ;
@@ -321,10 +308,22 @@ assignment_statement:
 ;
 
 goto_statement:
-	GOTO BASIC_BLOCK ';'
+	GOTO basic_block_number ';'
 	{
 		$$ = new Goto_Stmt_Ast($2);
 		goto_numbers.push_back($2);
+	}
+;
+
+basic_block_number:
+	BASIC_BLOCK
+	{
+		if ($1 < 2)
+		{
+			int line = get_line_number();
+			report_error("Illegal basic block lable", line);
+		}
+		$$ = $1;
 	}
 ;
 

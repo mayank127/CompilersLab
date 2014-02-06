@@ -20,7 +20,6 @@
 
 
 ***********************************************************************************************/
-
 #include <iostream>
 #include <cstdlib>
 #include <stdlib.h>
@@ -30,6 +29,14 @@ using namespace std;
 
 #include "user-options.hh"
 #include "error-display.hh"
+void report_internal_error(string error_message)
+{
+	stringstream message;
+	message << "(Internal Error) ";
+	message << __FILE__ << " : line " << __LINE__ << " :: error : " << error_message;
+	message << "\nTerminating";
+	print_error(message.str(), 1);
+}
 
 void report_error(string error_message, int line)
 {
