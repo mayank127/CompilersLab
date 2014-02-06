@@ -30,3 +30,5 @@ do
 	./cfglp -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out1
 	./cfglp64 -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out2
 done
+
+meld out1 out2
