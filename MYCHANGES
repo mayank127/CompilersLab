@@ -1,39 +1,20 @@
 Mayank Meghwanshi 110050012
 Vivek Agarwal 110050042
 
-1. We have made the following changes in the grammer rules in the file parser.yy
+In file ast.cc and ast.hh:
+	1. If_Else_Stmt_Ast class : Added for conditional goto statement
+	2. Relational_Expr_Ast : Added for relational expression
+	3. Goto_Stmt_Ast : Added for goto statements
 
-assignment_statement  -->	variable = expression ;
+In file basic_block.cc :
+	1. Added a new variable 'successor' to determine whether the basic block has a next valid successor
+	2. Added two new functions : get() and set() for the same.
 
-goto_statement -->	GOTO < NAME INTEGER_NUMBER > 
+In file local-environment.cc:
+	1. Created a new class Eval_Result_BB for evaluating results of a basic block.
 
-if_statement -->	IF (conditional_expression) goto_statement ELSE goto_statement
+In file parser.ih
+	1. Created a new function 'bb_check_goto_number_exist()' to check if the basic-block ids used in goto statements are valid.
 
-expression -->	conditional_expression
-
-conditional_expression -->	conditional_expression || and_expression | 	and_expression
-
-
-and_expression  -->	and_expression && equal_expression | equal_expression
-
-
-equal_expression -->	equal_expression == comparison_expression|
-	equal_expression != comparison_expression | comparison_expression
-
-
-comparison_expression  --> comparison_expression < not_expression|
-	comparison_expression > not_expression|
-	comparison_expression <= not_expression|
-	comparison_expression >= not_expression|
-	not_expression
-
-
-not_expression --> ! basic_expression | basic_expression
-
-
-basic_expression -->	constant |  variable
-
-2. We have added new token specifications in file Scanner.ll :
-	IF, ELSE, GOTO
-3. In METACHAR, we have added the following symbols :
-	!,&,|
+In file parser.yy
+	1. Wrote action-routines corresponding to the new grammar elements
