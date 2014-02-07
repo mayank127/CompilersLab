@@ -48,7 +48,7 @@ void report_error(string error_message, int line)
 	else
 		message << file_name << " :: cfglp error : " << error_message;
 	print_error(message.str(), NOTEXIT);
-	command_options.delete_files();
+	//command_options.delete_files();
 	exit(0);
 }
 
@@ -58,12 +58,12 @@ void print_error(string error_message, int exit_flag)
 
 	if (command_options.is_do_eval_selected())
 	{
-		command_options.delete_files();
+		//command_options.delete_files();
 		exit(0);
 	}
 
 	if (exit_flag){
-		command_options.delete_files();
+		//command_options.delete_files();
 		exit(0);
 	}
 }

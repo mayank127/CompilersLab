@@ -5,15 +5,18 @@ echo "" > out2
 EFILES=./test_files/*.ecfg
 for f in $EFILES
 do
-	echo $f >>out1
-	echo $f >>out2
-	./cfglp -tokens -ast -eval -d $f >> out1
-	./cfglp64 -tokens -ast -eval -d $f >> out2
+	echo $f >> out1
+	echo $f >> out2
+	./cfglp -tokens -ast -eval  $f >> out1
+	# ./cfglp64 -tokens -ast -eval -d  $f >> out2
 done
 
-FILES="ContDoWhile.c  Glob.c            GlobNoDeclNoDef1BB.c   MultRelInTernary.c  NoDeclNoDef1BB.c  RelInIfNotEq.c  test.c \
-Decl1BB.c      GlobDeclDef.c     GlobTernaryInIfLoop.c  MultGlob.c      NestedIf.c          NotEqInIf.c       RelInStmt.c     TwoRelInTernary.c \
-DeclDef1BB.c   GlobLocSameVar.c  iftmp.c                MultRel.c         RelInCond.c       TempInIfRel.c   VarMain.c"
+FILES="Arith.c          DeclDef1BB.c      GlobNoDeclNoDef1BB.c   IfIntFloatRelArith.c  MultGlob.c          NotEqInIf.c     test.c \
+ArithFloat.c     FloatRelArith.c   GlobTernaryInIfLoop.c  IfRelArith.c          MultRel.c           RelArith.c      TwoRelInTernary.c \
+ArithIntFloat.c  FloatUnary.c      IfArith.c              iftmp.c               MultRelInTernary.c  RelInCond.c     Unary.c \
+Const.c          Glob.c            IfFloatArith.c         IfUnary.c             NestedIf.c          RelInIfNotEq.c  UserIfTmp.c \
+ContDoWhile.c    GlobDeclDef.c     IfFloatRelArith.c      RelInStmt.c           VarMain.c \
+Decl1BB.c        GlobLocSameVar.c  IfIntFloat.c           IntInFloat.c          NoDeclNoDef1BB.c    TempInIfRel.c"
 
 for f in $FILES
 do
@@ -27,8 +30,8 @@ for f in $FILES
 do
 	echo $f"s306.cfg" >> out1
 	echo $f"s306.cfg" >> out2
-	./cfglp -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out1
-	./cfglp64 -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out2
+	./cfglp -tokens -ast -eval  $FOLDER/$f"s306.cfg" >> out1
+	# ./cfglp64 -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out2
 done
 
 meld out1 out2
