@@ -394,7 +394,11 @@ basic_expression:
 		$$ = $1;
 	}*/
 |
+	'-' constant
+|
 	variable
+|
+	'-' variable
 	/*{
 		$$ = $1;
 	}*/
@@ -403,6 +407,20 @@ basic_expression:
 	arithmetic_expression
 |
 	'(' arithmetic_expression ')'
+|
+	'-' '(' arithmetic_expression ')'
+|
+	'(' FLOAT ')' variable
+|
+	'(' INTEGER ')' variable
+|
+	'(' DOUBLE ')' variable
+|
+	'(' FLOAT ')' '('arithmetic_expression')'
+|
+	'(' INTEGER ')' '('arithmetic_expression')'
+|
+	'(' DOUBLE ')' '('arithmetic_expression')'
 ;
 
 expression:
@@ -424,14 +442,7 @@ arithmetic_expression:
 	basic_expression '*' basic_expression
 |
 	basic_expression '/' basic_expression
-|
-	'-' basic_expression
-|
-	'(' FLOAT ')' basic_expression
-|
-	'(' INTEGER ')' basic_expression
-|
-	'(' DOUBLE ')' basic_expression
+
 ;
 variable:
 	NAME

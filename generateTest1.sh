@@ -30,7 +30,7 @@ for f in $FILES
 do
 	echo $f"s306.cfg" >> out1
 	echo $f"s306.cfg" >> out2
-	# ./cfglp -tokens  $FOLDER/$f"s306.cfg" >> out1
+	./cfglp -tokens  $FOLDER/$f"s306.cfg" >> out1
 	# ./cfglp64 -tokens $FOLDER/$f"s306.cfg" >> out2
 done
 
