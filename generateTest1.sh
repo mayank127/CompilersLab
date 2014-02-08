@@ -7,8 +7,8 @@ for f in $EFILES
 do
 	echo $f >> out1
 	echo $f >> out2
-	./cfglp -tokens -ast -eval  $f >> out1
-	# ./cfglp64 -tokens -ast -eval -d  $f >> out2
+	./cfglp -tokens $f -d >> out1
+	./cfglp64 -tokens   -d $f >> out2
 done
 
 FILES="Arith.c          DeclDef1BB.c      GlobNoDeclNoDef1BB.c   IfIntFloatRelArith.c  MultGlob.c          NotEqInIf.c     test.c \
@@ -21,7 +21,7 @@ Decl1BB.c        GlobLocSameVar.c  IfIntFloat.c           IntInFloat.c          
 for f in $FILES
 do
 	echo $f
-	make -f Makefile.cfg FILE=$f
+	# make -f Makefile.cfg FILE=$f
 done
 
 FOLDER=./test_files
@@ -30,8 +30,8 @@ for f in $FILES
 do
 	echo $f"s306.cfg" >> out1
 	echo $f"s306.cfg" >> out2
-	./cfglp -tokens -ast -eval  $FOLDER/$f"s306.cfg" >> out1
-	# ./cfglp64 -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >> out2
+	# ./cfglp -tokens  $FOLDER/$f"s306.cfg" >> out1
+	# ./cfglp64 -tokens $FOLDER/$f"s306.cfg" >> out2
 done
 
-meld out1 out2
+# meld out1 out2

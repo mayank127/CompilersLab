@@ -47,6 +47,17 @@ goto	{
 			store_token_name("GOTO");
 			return Parser::GOTO;
 		}
+
+float	{
+			store_token_name("META CHAR");
+			return Parser::FLOAT;
+		}
+double	{
+			store_token_name("META CHAR");
+			return Parser::DOUBLE;
+		}
+
+
 \<bb\ [[:digit:]]+\>	{
 						store_token_name("BASIC BLOCK");
 						ParserBase::STYPE__ * val = getSval();
@@ -95,12 +106,27 @@ goto	{
 			store_token_name("ASSIGN_OP");
 			return Parser::ASSIGN_OP;
 		}
+
+[-*+/]	{
+			store_token_name("ARITHOP");
+			return matched()[0];
+		}
+
 [:{}();]	{
 			store_token_name("META CHAR");
 			return matched()[0];
 		}
 
-[-]?[[:digit:]_]+ 	{
+[-]?[[:digit:]]+[.][[:digit:]]+	{
+				store_token_name("FNUM");
+
+				ParserBase::STYPE__ * val = getSval();
+				val->float_value = atof(matched().c_str());
+
+				return Parser::FNUM;
+			}
+
+[-]?[[:digit:]]+ 	{
 				store_token_name("NUM");
 
 				ParserBase::STYPE__ * val = getSval();
@@ -108,6 +134,8 @@ goto	{
 
 				return Parser::INTEGER_NUMBER;
 			}
+
+
 
 [[:alpha:]_][[:alpha:][:digit:]_]* {
 					store_token_name("NAME");
@@ -123,7 +151,7 @@ goto	{
 				ignore_token();
 		}
 
-";;".*  	|
+[ \t]*";;".*  	|
 [ \t]		{
 			if (command_options.is_show_tokens_selected())
 				ignore_token();
@@ -137,3 +165,4 @@ goto	{
 			int line_number = lineNr();
 			report_error(error_message, line_number);
 		}
+
