@@ -49,11 +49,11 @@ goto	{
 		}
 
 float	{
-			store_token_name("META CHAR");
+			store_token_name("FLOAT");
 			return Parser::FLOAT;
 		}
 double	{
-			store_token_name("META CHAR");
+			store_token_name("DOUBLE");
 			return Parser::DOUBLE;
 		}
 
