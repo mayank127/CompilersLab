@@ -191,8 +191,18 @@ declaration_statement:
 	}
 |
 	FLOAT NAME ';'
+	{
+		$$ = new Symbol_Table_Entry(*$2, float_data_type);
+
+		delete $2;
+	}
 |
 	DOUBLE NAME ';'
+	{
+		$$ = new Symbol_Table_Entry(*$2, float_data_type);
+
+		delete $2;
+	}
 
 ;
 
@@ -395,15 +405,24 @@ basic_expression:
 	}
 |
 	'-' constant
+	{
+		$$ = new Unary_Ast($2);
+	}
 |
 	variable
-|
-	'-' variable
 	{
 		$$ = $1;
 	}
 |
+	'-' variable
+	{
+		$$ = new Unary_Ast($9);
+	}
+|
 	'(' FLOAT ')' variable
+	{
+		
+	}
 |
 	'(' INTEGER ')' variable
 |
@@ -413,6 +432,9 @@ basic_expression:
 expression:
 
 	basic_expression
+	{
+		$$ = $1;
+	}
 |
 	conditional_expression
 	{
@@ -420,27 +442,57 @@ expression:
 	}
 |
 	arithmetic_expression
+	{
+		$$ = $1;
+	}
 |
 	'(' expression ')'
+	{
+		$$ = $2;
+	}
 |
 	'-' '(' expression ')'
+	{
+		$$ = new Unary_Ast($3);
+	}
 |
 	'(' FLOAT ')' '('expression')'
+	{
+
+	}
 |
 	'(' INTEGER ')' '('expression')'
+	{
+
+	}
 |
 	'(' DOUBLE ')' '('expression')'
+	{
+
+	}
 
 ;
 
 arithmetic_expression:
 	expression '+' expression
+	{
+		$$ = new Plus_Ast($1, $3);
+	}
 |
 	expression '-' expression
+	{
+		$$ = new Minus_Ast($1, $3);
+	}
 |
 	expression '*' expression
+	{
+		$$ = new Multiplication_Ast($1, $3);
+	}
 |
 	expression '/' expression
+	{
+		$$ = new Division_Ast($1, $3);
+	}
 
 ;
 variable:
@@ -473,4 +525,7 @@ constant:
 	}
 |
 	FNUM
+	{
+		$$ = new Number_Ast<float>($1, float_data_type);
+	}
 ;

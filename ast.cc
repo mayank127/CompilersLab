@@ -507,7 +507,7 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
 	print_ast(file_buffer);
-	
+
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -519,4 +519,3 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	}
 	return *result;
 }
-
