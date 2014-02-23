@@ -1,20 +1,16 @@
 Mayank Meghwanshi 110050012
 Vivek Agarwal 110050042
 
-In file ast.cc and ast.hh:
-	1. If_Else_Stmt_Ast class : Added for conditional goto statement
-	2. Relational_Expr_Ast : Added for relational expression
-	3. Goto_Stmt_Ast : Added for goto statements
+In file scanner.ll:
+	1. New tokens called float and double 
+	2. Regex for detecting float number called FNUM
 
-In file basic_block.cc :
-	1. Added a new variable 'successor' to determine whether the basic block has a next valid successor
-	2. Added two new functions : get() and set() for the same.
+In file parser.yy:
+	1. New definition of arithmetic_expression added :
+	arithmetic_expression: 	expression '+' expression | 	
+							expression '-' expression | 	
+							expression '*' expression | 	
+							expression '/' expression;
 
-In file local-environment.cc:
-	1. Created a new class Eval_Result_BB for evaluating results of a basic block.
-
-In file parser.ih
-	1. Created a new function 'bb_check_goto_number_exist()' to check if the basic-block ids used in goto statements are valid.
-
-In file parser.yy
-	1. Wrote action-routines corresponding to the new grammar elements
+-	2. Augmented the definition of 'expression' by including typecast and arithmetic expressions.
+	3. Augmented the definition of 'constant' by adding FNUM to it. 
