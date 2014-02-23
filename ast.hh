@@ -165,4 +165,64 @@ public:
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
 };
 
+
+class Plus_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Plus_Ast(Ast * temp_lhs, Ast * temp_rhs);
+	~Plus_Ast();
+
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
+	Data_Type get_data_type();
+};
+
+class Minus_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Minus_Ast(Ast * temp_lhs, Ast * temp_rhs);
+	~Minus_Ast();
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
+	Data_Type get_data_type();
+};
+
+
+class Multiplication_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Multiplication_Ast(Ast * temp_lhs, Ast * temp_rhs);
+	~Multiplication_Ast();
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
+	Data_Type get_data_type();
+};
+
+class Division_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Division_Ast(Ast * temp_lhs, Ast * temp_rhs);
+	~Division_Ast();
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
+	Data_Type get_data_type();
+};
+
+class Unary_Ast:public Ast{
+	Ast* lhs;
+public:
+	Unary_Ast(Ast * temp_lhs);
+	~Unary_Ast();
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+};
+
 #endif
