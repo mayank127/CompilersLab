@@ -519,3 +519,252 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	}
 	return *result;
 }
+
+// Minus
+Minus_Ast::Minus_Ast(Ast * temp_lhs, Ast * temp_rhs)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+}
+
+Minus_Ast::~Minus_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Minus_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Minus_Ast::check_ast(int line)
+{
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	report_error("Arithmetic(-) statement data type not compatible", line);
+}
+
+void Minus_Ast::print_ast(ostream & file_buffer)
+{
+	file_buffer  <<AST_SPACE << "Arith: MINUS\n";
+
+	file_buffer << AST_NODE_SPACE"LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "RHS (";
+	rhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+}
+
+Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+
+	if (lresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on lhs", NOLINE);
+	if (rresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on rhs", NOLINE);
+
+	print_ast(file_buffer);
+	
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_value().f + rresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_value().i - rresult.get_value().i);
+	}
+	return *result;
+}
+
+// Division
+Division_Ast::Division_Ast(Ast * temp_lhs, Ast * temp_rhs)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+}
+
+Division_Ast::~Division_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Division_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Division_Ast::check_ast(int line)
+{
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	report_error("Arithmetic(/) statement data type not compatible", line);
+}
+
+void Division_Ast::print_ast(ostream & file_buffer)
+{
+	file_buffer  <<AST_SPACE << "Arith: DIVISION\n";
+
+	file_buffer << AST_NODE_SPACE"LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "RHS (";
+	rhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+}
+
+Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+
+	if (lresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on lhs", NOLINE);
+	if (rresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on rhs", NOLINE);
+
+	print_ast(file_buffer);
+	
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_value().f + rresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_value().i / rresult.get_value().i);
+	}
+	return *result;
+}
+
+// Unary
+Unary_Ast::Unary_Ast(Ast * temp_lhs)
+{
+	lhs = temp_lhs;
+}
+
+Unary_Ast::~Unary_Ast()
+{
+	delete lhs;
+}
+
+Data_Type Unary_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Unary_Ast::check_ast(int line)
+{
+	node_data_type = lhs->get_data_type();
+	return true;
+}
+
+void Unary_Ast::print_ast(ostream & file_buffer)
+{
+	file_buffer  <<AST_SPACE << "Arith: UNARY\n";
+
+	file_buffer << AST_NODE_SPACE"LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+}
+
+Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+
+	if (lresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on lhs", NOLINE);
+
+	print_ast(file_buffer);
+	
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(-1*lresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(-1 * lresult.get_value().i);
+	}
+	return *result;
+}
+
+Multiplication_Ast::Multiplication_Ast(Ast * temp_lhs, Ast * temp_rhs)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+}
+
+Multiplication_Ast::~Multiplication_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Multiplication_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Multiplication_Ast::check_ast(int line)
+{
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	report_error("Arithmetic(+) statement data type not compatible", line);
+}
+
+void Multiplication_Ast::print_ast(ostream & file_buffer)
+{
+	file_buffer  <<AST_SPACE << "Arith: Multiply\n";
+
+	file_buffer << AST_NODE_SPACE"LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "RHS (";
+	rhs->print_ast(file_buffer);
+	file_buffer << ")\n";
+}
+
+Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+
+	if (lresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on lhs", NOLINE);
+	if (rresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on rhs", NOLINE);
+
+	print_ast(file_buffer);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_value().f * rresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_value().i * rresult.get_value().i);
+	}
+	return *result;
+}

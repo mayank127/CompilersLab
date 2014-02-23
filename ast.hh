@@ -223,6 +223,8 @@ public:
 	~Unary_Ast();
 	void print_ast(ostream & file_buffer);
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
+	Data_Type get_data_type();
 };
 
 class TypeCast_Ast:public Ast{
