@@ -229,12 +229,12 @@ public:
 
 class TypeCast_Ast:public Ast{
 	Ast* lhs;
-	Data_Type data_type;
 public:
 	TypeCast_Ast(Ast * temp_lhs, Data_Type temp_data_type);
 	~TypeCast_Ast();
 	void print_ast(ostream & file_buffer);
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	Data_Type get_data_type();
 };
 
 #endif

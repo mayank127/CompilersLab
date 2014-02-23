@@ -285,7 +285,7 @@ void Return_Ast::print_ast(ostream & file_buffer)
 
 Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
-	Eval_Result & result = *(new Eval_Result_BB());	
+	Eval_Result & result = *(new Eval_Result_BB());
 	result.set_value(-1);
 	print_ast(file_buffer);
 	return result;
@@ -573,7 +573,7 @@ Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
 	print_ast(file_buffer);
-	
+
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -639,7 +639,7 @@ Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
 	print_ast(file_buffer);
-	
+
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -691,7 +691,7 @@ Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 		report_error("Variable should be defined to be on lhs", NOLINE);
 
 	print_ast(file_buffer);
-	
+
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -729,7 +729,7 @@ bool Multiplication_Ast::check_ast(int line)
 		return true;
 	}
 
-	report_error("Arithmetic(+) statement data type not compatible", line);
+	report_error("Arithmetic(*) statement data type not compatible", line);
 }
 
 void Multiplication_Ast::print_ast(ostream & file_buffer)
@@ -765,6 +765,47 @@ Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream
 	else{
 		result = new Eval_Result_Value_Int();
 	 	result->set_value(lresult.get_value().i * rresult.get_value().i);
+	}
+	return *result;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+TypeCast_Ast::TypeCast_Ast(Ast * temp_lhs, Data_Type temp_data_type)
+{
+	lhs = temp_lhs;
+	node_data_type = temp_data_type;
+}
+
+TypeCast_Ast::~TypeCast_Ast()
+{
+	delete lhs;
+}
+
+Data_Type TypeCast_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+void TypeCast_Ast::print_ast(ostream & file_buffer)
+{
+	lhs->print_ast(file_buffer);
+}
+
+Eval_Result & TypeCast_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(-1*lresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(-1 * lresult.get_value().i);
 	}
 	return *result;
 }

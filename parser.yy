@@ -64,6 +64,8 @@
 %type <ast> if_statement
 %type <ast> goto_statement
 %type <ast> expression
+%type <ast> basic_expression
+%type <ast> arithmetic_expression
 %type <ast> conditional_expression
 %type <ast> variable
 %type <ast> constant
@@ -407,6 +409,8 @@ basic_expression:
 	'-' constant
 	{
 		$$ = new Unary_Ast($2);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	variable
@@ -416,17 +420,25 @@ basic_expression:
 |
 	'-' variable
 	{
-		$$ = new Unary_Ast($9);
+		$$ = new Unary_Ast($2);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	'(' FLOAT ')' variable
 	{
-		
+		$$  = new TypeCast_Ast($4, float_data_type);
 	}
 |
 	'(' INTEGER ')' variable
+	{
+		$$  = new TypeCast_Ast($4, int_data_type);
+	}
 |
 	'(' DOUBLE ')' variable
+	{
+		$$  = new TypeCast_Ast($4, float_data_type);
+	}
 ;
 
 expression:
@@ -454,21 +466,23 @@ expression:
 	'-' '(' expression ')'
 	{
 		$$ = new Unary_Ast($3);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	'(' FLOAT ')' '('expression')'
 	{
-
+		$$  = new TypeCast_Ast($5, float_data_type);
 	}
 |
 	'(' INTEGER ')' '('expression')'
 	{
-
+		$$  = new TypeCast_Ast($5, int_data_type);
 	}
 |
 	'(' DOUBLE ')' '('expression')'
 	{
-
+		$$  = new TypeCast_Ast($5, float_data_type);
 	}
 
 ;
@@ -477,21 +491,29 @@ arithmetic_expression:
 	expression '+' expression
 	{
 		$$ = new Plus_Ast($1, $3);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	expression '-' expression
 	{
 		$$ = new Minus_Ast($1, $3);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	expression '*' expression
 	{
 		$$ = new Multiplication_Ast($1, $3);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	expression '/' expression
 	{
 		$$ = new Division_Ast($1, $3);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 
 ;
