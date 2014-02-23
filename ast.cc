@@ -23,6 +23,7 @@
 
 #include<iostream>
 #include<fstream>
+#include<iomanip>
 
 using namespace std;
 
@@ -256,7 +257,7 @@ Data_Type Number_Ast<DATA_TYPE>::get_data_type()
 template <class DATA_TYPE>
 void Number_Ast<DATA_TYPE>::print_ast(ostream & file_buffer)
 {
-	file_buffer << "Num : " << constant;
+	file_buffer << "Num : " << std::setprecision(2) << std::fixed <<constant;
 }
 
 template <class DATA_TYPE>
@@ -265,6 +266,13 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 	if (node_data_type == int_data_type)
 	{
 		Eval_Result & result = *new Eval_Result_Value_Int();
+		result.set_value(constant);
+
+		return result;
+	}
+	else if (node_data_type == float_data_type)
+	{
+		Eval_Result & result = *new Eval_Result_Value_Float();
 		result.set_value(constant);
 
 		return result;
@@ -356,13 +364,7 @@ Data_Type Relational_Expr_Ast::get_data_type()
 
 bool Relational_Expr_Ast::check_ast(int line)
 {
-	if (lhs->get_data_type() == rhs->get_data_type())
-	{
-		node_data_type = lhs->get_data_type();
-		return true;
-	}
-
-	report_error("Relational Expression data type not compatible", line);
+	node_data_type = int_data_type;
 }
 
 void Relational_Expr_Ast::print_ast(ostream & file_buffer){
@@ -388,13 +390,18 @@ Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream
 
 	float left;
 	float right;
-	if(node_data_type==float_data_type){
-		left = resultLeft.get_value().f;
-		right = resultRight.get_value().f;
-	}
-	else if(node_data_type==int_data_type){
+	if(resultLeft.get_result_enum()==int_result){
 		left = resultLeft.get_value().i;
+	}
+	else if(resultLeft.get_result_enum()==float_result){
+		left = resultLeft.get_value().f;
+	}
+
+	if(resultRight.get_result_enum()==int_result){
 		right = resultRight.get_value().i;
+	}
+	else if(resultRight.get_result_enum()==float_result){
+		right = resultRight.get_value().f;
 	}
 
 	switch(op) {
@@ -485,15 +492,15 @@ bool Plus_Ast::check_ast(int line)
 
 void Plus_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer  <<AST_SPACE << "Arith: PLUS\n";
+	file_buffer  <<endl<<AST_SPACE << "   Arith: PLUS\n";
 
-	file_buffer << AST_NODE_SPACE"LHS (";
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
 	lhs->print_ast(file_buffer);
 	file_buffer << ")\n";
 
-	file_buffer << AST_NODE_SPACE << "RHS (";
+	file_buffer << AST_NODE_SPACE << "   RHS (";
 	rhs->print_ast(file_buffer);
-	file_buffer << ")\n";
+	file_buffer << ")";
 }
 
 Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -506,7 +513,7 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	print_ast(file_buffer);
+	// print_ast(file_buffer);
 
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
@@ -551,15 +558,15 @@ bool Minus_Ast::check_ast(int line)
 
 void Minus_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer  <<AST_SPACE << "Arith: MINUS\n";
+	file_buffer  <<endl<<AST_SPACE << "   Arith: MINUS\n";
 
-	file_buffer << AST_NODE_SPACE"LHS (";
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
 	lhs->print_ast(file_buffer);
 	file_buffer << ")\n";
 
-	file_buffer << AST_NODE_SPACE << "RHS (";
+	file_buffer << AST_NODE_SPACE << "   RHS (";
 	rhs->print_ast(file_buffer);
-	file_buffer << ")\n";
+	file_buffer << ")";
 }
 
 Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -572,12 +579,12 @@ Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	print_ast(file_buffer);
+	// print_ast(file_buffer);
 
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
-	 	result->set_value(lresult.get_value().f + rresult.get_value().f);
+	 	result->set_value(lresult.get_value().f - rresult.get_value().f);
 	}
 	else{
 		result = new Eval_Result_Value_Int();
@@ -617,15 +624,15 @@ bool Division_Ast::check_ast(int line)
 
 void Division_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer  <<AST_SPACE << "Arith: DIVISION\n";
+	file_buffer  <<endl<<AST_SPACE << "   Arith: DIV\n";
 
-	file_buffer << AST_NODE_SPACE"LHS (";
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
 	lhs->print_ast(file_buffer);
 	file_buffer << ")\n";
 
-	file_buffer << AST_NODE_SPACE << "RHS (";
+	file_buffer << AST_NODE_SPACE << "   RHS (";
 	rhs->print_ast(file_buffer);
-	file_buffer << ")\n";
+	file_buffer << ")";
 }
 
 Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -638,12 +645,12 @@ Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	print_ast(file_buffer);
+	// print_ast(file_buffer);
 
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
-	 	result->set_value(lresult.get_value().f + rresult.get_value().f);
+	 	result->set_value(lresult.get_value().f / rresult.get_value().f);
 	}
 	else{
 		result = new Eval_Result_Value_Int();
@@ -676,11 +683,11 @@ bool Unary_Ast::check_ast(int line)
 
 void Unary_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer  <<AST_SPACE << "Arith: UNARY\n";
+	file_buffer  <<endl<<AST_SPACE << "   Arith: UMINUS\n";
 
-	file_buffer << AST_NODE_SPACE"LHS (";
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
 	lhs->print_ast(file_buffer);
-	file_buffer << ")\n";
+	file_buffer << ")";
 }
 
 Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -690,7 +697,7 @@ Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 	if (lresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on lhs", NOLINE);
 
-	print_ast(file_buffer);
+	// print_ast(file_buffer);
 
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
@@ -734,15 +741,15 @@ bool Multiplication_Ast::check_ast(int line)
 
 void Multiplication_Ast::print_ast(ostream & file_buffer)
 {
-	file_buffer  <<AST_SPACE << "Arith: Multiply\n";
+	file_buffer  <<endl<<AST_SPACE << "   Arith: MULT\n";
 
-	file_buffer << AST_NODE_SPACE"LHS (";
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
 	lhs->print_ast(file_buffer);
 	file_buffer << ")\n";
 
-	file_buffer << AST_NODE_SPACE << "RHS (";
+	file_buffer << AST_NODE_SPACE << "   RHS (";
 	rhs->print_ast(file_buffer);
-	file_buffer << ")\n";
+	file_buffer << ")";
 }
 
 Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
@@ -755,7 +762,7 @@ Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	print_ast(file_buffer);
+	//print_ast(file_buffer);
 
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
@@ -801,11 +808,21 @@ Eval_Result & TypeCast_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
-	 	result->set_value(-1*lresult.get_value().f);
+		if(lresult.get_result_enum() == int_result){
+			result->set_value((float)lresult.get_value().i);
+		}
+		else{
+			result->set_value(lresult.get_value().f);
+		}
 	}
 	else{
 		result = new Eval_Result_Value_Int();
-	 	result->set_value(-1 * lresult.get_value().i);
+	 	if(lresult.get_result_enum() == float_result){
+			result->set_value((int)lresult.get_value().f);
+		}
+		else{
+			result->set_value(lresult.get_value().i);
+		}
 	}
 	return *result;
 }
