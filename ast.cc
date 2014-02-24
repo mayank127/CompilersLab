@@ -71,7 +71,7 @@ int Ast::get_block_number()
 	report_internal_error("Should not reach, Ast : get_block_number");
 }
 
-////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Assignment_Ast::Assignment_Ast(Ast * temp_lhs, Ast * temp_rhs)
 {
@@ -134,9 +134,9 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-////////////////////////////////////////////////////////
 Name_Ast::Name_Ast(string & name, Symbol_Table_Entry & var_entry)
 {
 	variable_name = name;
@@ -235,7 +235,8 @@ Eval_Result & Name_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	return get_value_of_evaluation(eval_env);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template <class DATA_TYPE>
 Number_Ast<DATA_TYPE>::Number_Ast(DATA_TYPE number, Data_Type constant_data_type)
@@ -278,7 +279,12 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 		return result;
 	}
 }
-///////////////////////////////////////////////////////////////////////////////
+
+
+template class Number_Ast<int>;
+template class Number_Ast<float>;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Return_Ast::Return_Ast()
 {}
@@ -299,11 +305,8 @@ Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_
 	return result;
 }
 
-template class Number_Ast<int>;
-template class Number_Ast<float>;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////////////////
 
 If_Else_Stmt_Ast::If_Else_Stmt_Ast(Ast * condition_temp, Ast * true_goto_temp, Ast * false_goto_temp)
 {
@@ -346,7 +349,10 @@ Eval_Result & If_Else_Stmt_Ast::evaluate(Local_Environment & eval_env, ostream &
 	return result;
 }
 
-////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 Relational_Expr_Ast::Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs,Relation_Op temp_op){
 	lhs = temp_lhs;
 	rhs = temp_rhs;
@@ -364,7 +370,12 @@ Data_Type Relational_Expr_Ast::get_data_type()
 
 bool Relational_Expr_Ast::check_ast(int line)
 {
-	node_data_type = int_data_type;
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = int_data_type;
+		return true;
+	}
+	report_error("Assignment statement data type not compatible", line);
 }
 
 void Relational_Expr_Ast::print_ast(ostream & file_buffer){
@@ -379,8 +390,6 @@ void Relational_Expr_Ast::print_ast(ostream & file_buffer){
 	file_buffer << AST_NODE_SPACE << "   RHS (";
 	rhs->print_ast(file_buffer);
 	file_buffer << ")";
-
-
 }
 
 Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream& file_buffer){
@@ -433,7 +442,7 @@ Relational_Expr_Ast::~Relational_Expr_Ast()
 	delete rhs;
 }
 
-/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Goto_Stmt_Ast::Goto_Stmt_Ast(int temp_block_number){
 	block_number = temp_block_number;
@@ -459,8 +468,7 @@ Eval_Result & Goto_Stmt_Ast::evaluate(Local_Environment& eval_env, ostream& file
 	return result;
 }
 
-/********************************************************************/
-
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Plus_Ast::Plus_Ast(Ast * temp_lhs, Ast * temp_rhs)
 {
@@ -513,8 +521,6 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	// print_ast(file_buffer);
-
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -526,6 +532,8 @@ Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 	}
 	return *result;
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Minus
 Minus_Ast::Minus_Ast(Ast * temp_lhs, Ast * temp_rhs)
@@ -579,8 +587,6 @@ Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	// print_ast(file_buffer);
-
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -593,6 +599,7 @@ Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_b
 	return *result;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Division
 Division_Ast::Division_Ast(Ast * temp_lhs, Ast * temp_rhs)
 {
@@ -645,8 +652,6 @@ Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	// print_ast(file_buffer);
-
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -659,57 +664,8 @@ Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	return *result;
 }
 
-// Unary
-Unary_Ast::Unary_Ast(Ast * temp_lhs)
-{
-	lhs = temp_lhs;
-}
-
-Unary_Ast::~Unary_Ast()
-{
-	delete lhs;
-}
-
-Data_Type Unary_Ast::get_data_type()
-{
-	return node_data_type;
-}
-
-bool Unary_Ast::check_ast(int line)
-{
-	node_data_type = lhs->get_data_type();
-	return true;
-}
-
-void Unary_Ast::print_ast(ostream & file_buffer)
-{
-	file_buffer  <<endl<<AST_SPACE << "   Arith: UMINUS\n";
-
-	file_buffer << AST_NODE_SPACE<<"   LHS (";
-	lhs->print_ast(file_buffer);
-	file_buffer << ")";
-}
-
-Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
-{
-	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
-
-	if (lresult.is_variable_defined() == false)
-		report_error("Variable should be defined to be on lhs", NOLINE);
-
-	// print_ast(file_buffer);
-
-	Eval_Result_Value * result;
-	if (node_data_type == float_data_type){
-		result = new Eval_Result_Value_Float();
-	 	result->set_value(-1*lresult.get_value().f);
-	}
-	else{
-		result = new Eval_Result_Value_Int();
-	 	result->set_value(-1 * lresult.get_value().i);
-	}
-	return *result;
-}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//multiplpy
 
 Multiplication_Ast::Multiplication_Ast(Ast * temp_lhs, Ast * temp_rhs)
 {
@@ -762,8 +718,6 @@ Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream
 	if (rresult.is_variable_defined() == false)
 		report_error("Variable should be defined to be on rhs", NOLINE);
 
-	//print_ast(file_buffer);
-
 	Eval_Result_Value * result;
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
@@ -777,7 +731,60 @@ Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream
 }
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Unary
+
+Unary_Ast::Unary_Ast(Ast * temp_lhs)
+{
+	lhs = temp_lhs;
+}
+
+Unary_Ast::~Unary_Ast()
+{
+	delete lhs;
+}
+
+Data_Type Unary_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Unary_Ast::check_ast(int line)
+{
+	node_data_type = lhs->get_data_type();
+	return true;
+}
+
+void Unary_Ast::print_ast(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: UMINUS\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print_ast(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+
+	if (lresult.is_variable_defined() == false)
+		report_error("Variable should be defined to be on lhs", NOLINE);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(-1*lresult.get_value().f);
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(-1 * lresult.get_value().i);
+	}
+	return *result;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 TypeCast_Ast::TypeCast_Ast(Ast * temp_lhs, Data_Type temp_data_type)
@@ -826,3 +833,5 @@ Eval_Result & TypeCast_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	}
 	return *result;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
