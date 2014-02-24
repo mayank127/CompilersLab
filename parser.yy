@@ -439,6 +439,21 @@ basic_expression:
 	{
 		$$  = new TypeCast_Ast($4, float_data_type);
 	}
+|
+	'(' FLOAT ')' constant
+	{
+		$$  = new TypeCast_Ast($4, float_data_type);
+	}
+|
+	'(' INTEGER ')' constant
+	{
+		$$  = new TypeCast_Ast($4, int_data_type);
+	}
+|
+	'(' DOUBLE ')' constant
+	{
+		$$  = new TypeCast_Ast($4, float_data_type);
+	}
 ;
 
 expression:
