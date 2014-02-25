@@ -7,8 +7,8 @@ for f in $EFILES
 do
 	echo $f >> out1
 	echo $f >> out2
-	./cfglp -tokens -ast -eval $f -d >> out1
-	./cfglp64 -tokens -ast -eval  $f -d >> out2
+	./cfglp -tokens -ast -eval -d $f >> out1
+	./cfglp64 -tokens -ast -eval  -d $f >> out2
 done
 
 FILES="ArithBrckt.c     Decl1BB.c        GlobLocSameVar.c       IfIntFloat.c          MultGlob.c          RelArithBrckt.c  test.c \
@@ -29,10 +29,10 @@ FOLDER=./test_files
 
 for f in $FILES
 do
-	echo $f"s306.cfg" #>> out1
-	echo $f"s306.cfg" #>> out2
-	./cfglp -tokens -ast -eval  $FOLDER/$f"s306.cfg"
-	# ./cfglp64 -tokens -ast -eval $FOLDER/$f"s306.cfg"
+	echo $f"s306.cfg" >> out1
+	echo $f"s306.cfg" >> out2
+	./cfglp -tokens -ast -eval  -d $FOLDER/$f"s306.cfg" >> out1
+	./cfglp64 -tokens -ast -eval -d $FOLDER/$f"s306.cfg" >>out2
 done
 
 # meld out1 out2
