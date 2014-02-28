@@ -1,16 +1,22 @@
 Mayank Meghwanshi 110050012
 Vivek Agarwal 110050042
 
-In file scanner.ll:
-	1. New tokens called float and double 
-	2. Regex for detecting float number called FNUM
+In file local-environment.hh:
+	1. Added a 'union' named 'Value' to deal with the integer and float values of the result of Eval_Result class and its inherited classes.
+	2. Created new classs named Eval_Result_Value_Float to deal with the float result values.
+
+In file local-environment.cc:
+	1. Modified the various class functions to suit according the new union construct 'Value'.
+
+In file ast.cc:
+	1. In all ASTs, the evaluate() functions were modified to deal with the case of float result values.
+	2. Created new ASTs namely :
+		Plus_Ast : To deal with  addition expressions
+		Minus_Ast : To deal with subtraction expressionss
+		Multiplication_Ast : To deal with multiplicative expressions
+		Division_Ast : To deal with division expressions
+		Unary_Ast : To deal with  unary expressions
+		TypeCast_Ast : To deal with typecasting entities.
 
 In file parser.yy:
-	1. New definition of arithmetic_expression added :
-	arithmetic_expression: 	expression '+' expression | 	
-							expression '-' expression | 	
-							expression '*' expression | 	
-							expression '/' expression;
-
--	2. Augmented the definition of 'expression' by including typecast and arithmetic expressions.
-	3. Augmented the definition of 'constant' by adding FNUM to it. 
+	1. Added action routines for arithmetic expressions, typecast expressions and float constants.
