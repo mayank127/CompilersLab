@@ -26,7 +26,7 @@
 %filenames parser
 %parsefun-source parser.cc
 
-%union 
+%union
 {
 	int integer_value;
 	float float_value;
@@ -45,7 +45,7 @@
 %token <float_value> FNUM
 %token <string_value> NAME
 
-%token RETURN INTEGER FLOAT DOUBLE IF ELSE GOTO ASSIGN_OP
+%token RETURN INTEGER FLOAT DOUBLE VOID IF ELSE GOTO ASSIGN_OP
 
 %left <relation_op> NE EQ
 %left <relation_op> LT LE GT GE
@@ -54,7 +54,7 @@
 %left '/' '*'
 
 
-%type <symbol_table> declaration_statement_list
+/*%type <symbol_table> declaration_statement_list
 %type <symbol_entry> declaration_statement
 %type <basic_block_list> basic_block_list
 %type <basic_block> basic_block
@@ -70,7 +70,7 @@
 %type <ast> variable
 %type <ast> constant
 %type <integer_value> basic_block_number
-
+*/
 
 
 %start program
@@ -78,65 +78,84 @@
 %%
 
 program:
-	declaration_statement_list procedure_name
-	{
+	declaration_statement_list procedure_list
+	/*{
 		program_object.set_global_table(*$1);
-	}
-	procedure_body
-	{
+	}*/
+	/*{
 		program_object.set_procedure_map(*current_procedure);
 
 		if ($1)
 			$1->global_list_in_proc_map_check(get_line_number());
 
 		delete $1;
-	}
+	}*/
 |
-	procedure_name
-	{
-	}
-	procedure_body
-	{
+	procedure_list
+	/*{
+	}*/
+	/*{
 		program_object.set_procedure_map(*current_procedure);
-	}
+	}*/
 ;
 
+procedure_list:
+	procedure_name procedure_body
+|
+	procedure_name procedure_body procedure_list
+;
 procedure_name:
+	NAME '(' argument_list ')'
+|
 	NAME '(' ')'
-	{
+	/*{
 		current_procedure = new Procedure(void_data_type, *$1);
-	}
+	}*/
 ;
 
 procedure_body:
 	'{' declaration_statement_list
-	{
+	/*{
 		current_procedure->set_local_list(*$2);
 		delete $2;
-	}
+	}*/
 	basic_block_list '}'
-	{
+	/*{
 
 		current_procedure->set_basic_block_list(*$4);
 
 		bb_check_goto_number_exist($4);
 
 		delete $4;
-	}
+	}*/
 |
 	'{' basic_block_list '}'
-	{
+	/*{
 
 		current_procedure->set_basic_block_list(*$2);
 		bb_check_goto_number_exist($2);
 
 		delete $2;
-	}
+	}*/
+;
+
+argument_list:
+	argument ',' argument_list
+|
+	argument
+;
+
+argument:
+	INTEGER NAME
+|
+	FLOAT NAME
+|
+	DOUBLE NAME
 ;
 
 declaration_statement_list:
 	declaration_statement
-	{
+	/*{
 		int line = get_line_number();
 		program_object.variable_in_proc_map_check($1->get_variable_name(), line);
 
@@ -149,10 +168,10 @@ declaration_statement_list:
 
 		$$ = new Symbol_Table();
 		$$->push_symbol($1);
-	}
+	}*/
 |
 	declaration_statement_list declaration_statement
-	{
+	/*{
 		// if declaration is local then no need to check in global list
 		// if declaration is global then this list is global list
 
@@ -181,36 +200,48 @@ declaration_statement_list:
 			$$ = new Symbol_Table();
 
 		$$->push_symbol($2);
-	}
+	}*/
 ;
 
 declaration_statement:
 	INTEGER NAME ';'
-	{
+	/*{
 		$$ = new Symbol_Table_Entry(*$2, int_data_type);
 
 		delete $2;
-	}
+	}*/
 |
 	FLOAT NAME ';'
-	{
+	/*{
 		$$ = new Symbol_Table_Entry(*$2, float_data_type);
 
 		delete $2;
-	}
+	}*/
 |
 	DOUBLE NAME ';'
-	{
+	/*{
 		$$ = new Symbol_Table_Entry(*$2, float_data_type);
 
 		delete $2;
-	}
+	}*/
+|
+	function_declaration
 
+;
+
+function_declaration:
+	INTEGER procedure_name ';'
+|
+	FLOAT procedure_name ';'
+|
+	DOUBLE procedure_name ';'
+|
+	VOID procedure_name ';'
 ;
 
 basic_block_list:
 	basic_block_list basic_block
-	{
+	/*{
 		if (!$2)
 		{
 			int line = get_line_number();
@@ -222,10 +253,10 @@ basic_block_list:
 		$$ = $1;
 		$$->back()->set_successor(true);
 		$$->push_back($2);
-	}
+	}*/
 |
 	basic_block
-	{
+	/*{
 		if (!$1)
 		{
 			int line = get_line_number();
@@ -234,13 +265,13 @@ basic_block_list:
 
 		$$ = new list<Basic_Block *>;
 		$$->push_back($1);
-	}
+	}*/
 
 ;
 
 basic_block:
 	basic_block_number ':' executable_statement_list
-	{
+	/*{
 
 		if ($3 != NULL){
 			$$ = new Basic_Block($1, *$3);
@@ -254,18 +285,18 @@ basic_block:
 		}
 
 		delete $3;
-	}
+	}*/
 ;
 
 executable_statement_list:
 	assignment_statement_list
-	{
+	/*{
 		$$ = $1;
 		check_bb_has_successor = false;
-	}
+	}*/
 |
 	assignment_statement_list goto_statement
-	{
+	/*{
 		if ($1 != NULL)
 			$$ = $1;
 
@@ -273,10 +304,10 @@ executable_statement_list:
 			$$ = new list<Ast *>;
 		check_bb_has_successor = true;
 		$$->push_back($2);
-	}
+	}*/
 |
 	assignment_statement_list if_statement
-	{
+	/*{
 		if ($1 != NULL)
 			$$ = $1;
 
@@ -284,10 +315,10 @@ executable_statement_list:
 			$$ = new list<Ast *>;
 		check_bb_has_successor = true;
 		$$->push_back($2);
-	}
+	}*/
 |
-	assignment_statement_list RETURN ';'
-	{
+	assignment_statement_list return_statement
+	/*{
 		Ast * ret = new Return_Ast();
 
 
@@ -298,16 +329,22 @@ executable_statement_list:
 			$$ = new list<Ast *>;
 		check_bb_has_successor = true;
 		$$->push_back(ret);
-	}
+	}*/
+;
+
+return_statement:
+	RETURN expression ';'
+|
+	RETURN ';'
 ;
 
 assignment_statement_list:
-	{
+	/*{
 		$$ = NULL;
-	}
+	}*/
 |
 	assignment_statement_list assignment_statement
-	{
+	/*{
 		if ($1 == NULL)
 			$$ = new list<Ast *>;
 
@@ -315,226 +352,188 @@ assignment_statement_list:
 			$$ = $1;
 
 		$$->push_back($2);
-	}
+	}*/
 ;
 
 assignment_statement:
 	variable ASSIGN_OP expression ';'
-	{
+	/*{
 		$$ = new Assignment_Ast($1, $3);
 
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
+|
+	function_call ';'
 ;
 
 goto_statement:
 	GOTO basic_block_number ';'
-	{
+	/*{
 		$$ = new Goto_Stmt_Ast($2);
 		goto_numbers.push_back($2);
-	}
+	}*/
 ;
 
 basic_block_number:
 	BASIC_BLOCK
-	{
+	/*{
 		if ($1 < 2)
 		{
 			int line = get_line_number();
 			report_error("Illegal basic block lable", line);
 		}
 		$$ = $1;
-	}
+	}*/
 ;
 
 if_statement:
 	IF '(' conditional_expression ')' goto_statement ELSE goto_statement
-	{
+	/*{
 		$$ = new If_Else_Stmt_Ast($3, $5, $7);
-	}
+	}*/
 ;
 
 
 conditional_expression:
 	expression GT expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression LT expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression GE expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression LE expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression EQ expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression NE expression
-	{
+	/*{
 		$$ = new Relational_Expr_Ast($1, $3, $2);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
+;
+
+
+atomic_expression:
+	constant
+|
+	variable
+|
+	function_call
+|
+	'(' expression ')'
 ;
 
 basic_expression:
-	constant
-	{
+	atomic_expression
+	/*{
 		$$ = $1;
-	}
+	}*/
 |
-	'-' constant
-	{
-		$$ = new Unary_Ast($2);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
+	'-' atomic_expression
 |
-	variable
-	{
-		$$ = $1;
-	}
-|
-	'-' variable
-	{
-		$$ = new Unary_Ast($2);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	'(' FLOAT ')' variable
-	{
+	'(' FLOAT ')' atomic_expression
+	/*{
 		$$  = new TypeCast_Ast($4, float_data_type);
-	}
+	}*/
 |
-	'(' INTEGER ')' variable
-	{
+	'(' INTEGER ')' atomic_expression
+	/*{
 		$$  = new TypeCast_Ast($4, int_data_type);
-	}
+	}*/
 |
-	'(' DOUBLE ')' variable
-	{
-		$$  = new TypeCast_Ast($4, float_data_type);
-	}
-|
-	'(' FLOAT ')' constant
-	{
-		$$  = new TypeCast_Ast($4, float_data_type);
-	}
-|
-	'(' INTEGER ')' constant
-	{
-		$$  = new TypeCast_Ast($4, int_data_type);
-	}
-|
-	'(' DOUBLE ')' constant
-	{
-		$$  = new TypeCast_Ast($4, float_data_type);
-	}
+	'(' DOUBLE ')' atomic_expression
+
 ;
 
 expression:
-
 	basic_expression
-	{
+	/*{
 		$$ = $1;
-	}
+	}*/
 |
 	conditional_expression
-	{
+	/*{
 		$$ = $1;
-	}
+	}*/
 |
 	arithmetic_expression
-	{
+	/*{
 		$$ = $1;
-	}
-|
-	'(' expression ')'
-	{
-		$$ = $2;
-	}
-|
-	'-' '(' expression ')'
-	{
-		$$ = new Unary_Ast($3);
-		int line = get_line_number();
-		$$->check_ast(line);
-	}
-|
-	'(' FLOAT ')' '('expression')'
-	{
-		$$  = new TypeCast_Ast($5, float_data_type);
-	}
-|
-	'(' INTEGER ')' '('expression')'
-	{
-		$$  = new TypeCast_Ast($5, int_data_type);
-	}
-|
-	'(' DOUBLE ')' '('expression')'
-	{
-		$$  = new TypeCast_Ast($5, float_data_type);
-	}
-
+	}*/
 ;
 
 arithmetic_expression:
 	expression '+' expression
-	{
+	/*{
 		$$ = new Plus_Ast($1, $3);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression '-' expression
-	{
+	/*{
 		$$ = new Minus_Ast($1, $3);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression '*' expression
-	{
+	/*{
 		$$ = new Multiplication_Ast($1, $3);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 |
 	expression '/' expression
-	{
+	/*{
 		$$ = new Division_Ast($1, $3);
 		int line = get_line_number();
 		$$->check_ast(line);
-	}
+	}*/
 
+;
+
+function_call:
+	NAME '(' expression_list ')'
+|
+	NAME '(' ')'
+;
+
+expression_list:
+	expression ',' expression_list
+|
+	expression
 ;
 variable:
 	NAME
-	{
+	/*{
 		Symbol_Table_Entry var_table_entry;
 
 		if (current_procedure->variable_in_symbol_list_check(*$1))
@@ -552,17 +551,17 @@ variable:
 		$$ = new Name_Ast(*$1, var_table_entry);
 
 		delete $1;
-	}
+	}*/
 ;
 
 constant:
 	INTEGER_NUMBER
-	{
+	/*{
 		$$ = new Number_Ast<int>($1, int_data_type);
-	}
+	}*/
 |
 	FNUM
-	{
+	/*{
 		$$ = new Number_Ast<float>($1, float_data_type);
-	}
+	}*/
 ;

@@ -56,6 +56,10 @@ double	{
 			store_token_name("DOUBLE");
 			return Parser::DOUBLE;
 		}
+void	{
+			store_token_name("VOID");
+			return Parser::VOID;
+		}
 
 
 \<bb\ [[:digit:]]+\>	{
@@ -112,7 +116,7 @@ double	{
 			return matched()[0];
 		}
 
-[:{}();]	{
+[:{}();,]	{
 			store_token_name("META CHAR");
 			return matched()[0];
 		}
