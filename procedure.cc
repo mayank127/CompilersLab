@@ -24,7 +24,7 @@
 #include<string>
 #include<fstream>
 #include<iostream>
-
+#include<iomanip>
 using namespace std;
 
 #include"error-display.hh"
@@ -36,10 +36,15 @@ using namespace std;
 #include"procedure.hh"
 #include"program.hh"
 
-Procedure::Procedure(Data_Type proc_return_type, string proc_name)
+Procedure::Procedure(Data_Type proc_return_type, string proc_name, vector<Symbol_Table_Entry*> arguments)
 {
 	return_type = proc_return_type;
 	name = proc_name;
+	argument_list = arguments;
+	for(int i=0;i<argument_list.size();i++){
+		local_symbol_table.push_symbol(argument_list[i]);
+	}
+	local_symbol_table.set_table_scope(local);
 }
 
 Procedure::~Procedure()
@@ -63,11 +68,20 @@ void Procedure::set_local_list(Symbol_Table & new_list)
 {
 	local_symbol_table = new_list;
 	local_symbol_table.set_table_scope(local);
+	for(int i=0;i<argument_list.size();i++){
+		local_symbol_table.push_symbol(argument_list[i]);
+	}
+
 }
 
 Data_Type Procedure::get_return_type()
 {
 	return return_type;
+}
+
+void Procedure::set_return_type(Data_Type type)
+{
+	return_type = type;
 }
 
 bool Procedure::variable_in_symbol_list_check(string variable)
@@ -82,11 +96,12 @@ Symbol_Table_Entry & Procedure::get_symbol_table_entry(string variable_name)
 
 void Procedure::print_ast(ostream & file_buffer)
 {
-	file_buffer << PROC_SPACE << "Procedure: main" << "\n\n";
+	file_buffer << PROC_SPACE << "Procedure: "<< name << "\n";
 
 	list<Basic_Block *>::iterator i;
 	for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
 		(*i)->print_bb(file_buffer);
+	file_buffer<<endl;
 }
 
 Basic_Block & Procedure::get_start_basic_block()
@@ -113,7 +128,6 @@ Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb, int previous_resu
 				return (*i);
 		}
 	}
-	else if(previous_result == -1) return NULL;
 	else
 	{
 		list<Basic_Block *>::iterator i;
@@ -129,14 +143,20 @@ Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb, int previous_resu
 	return NULL;
 }
 
-Eval_Result & Procedure::evaluate(ostream & file_buffer)
+Eval_Result & Procedure::evaluate(ostream & file_buffer, vector<Eval_Result_Value*> args)
 {
+	return_flag = false;
 	Local_Environment & eval_env = *new Local_Environment();
 	local_symbol_table.create(eval_env);
 
+
+	for(int i=0; i<argument_list.size(); i++){
+		eval_env.put_variable_value(*(args[i]), argument_list[i]->get_variable_name());
+	}
+
 	Eval_Result * result = NULL;
 
-	file_buffer << PROC_SPACE << "Evaluating Procedure " << name << "\n";
+	file_buffer << PROC_SPACE << "Evaluating Procedure << " << name << " >>\n";
 	file_buffer << LOC_VAR_SPACE << "Local Variables (before evaluating):\n";
 	eval_env.print(file_buffer);
 	file_buffer << "\n";
@@ -145,6 +165,9 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer)
 	while (current_bb)
 	{
 		result = &(current_bb->evaluate(eval_env, file_buffer));
+		if(return_flag){
+			break;
+		}
 		if(result)
 			current_bb = get_next_bb(*current_bb, result->get_value().i);
 		else
@@ -152,9 +175,15 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer)
 	}
 
 	file_buffer << "\n\n";
-	file_buffer << LOC_VAR_SPACE << "Local Variables (after evaluating):\n";
+	file_buffer << LOC_VAR_SPACE << "Local Variables (after evaluating) Function: << "<< name <<" >>\n";
 	eval_env.print(file_buffer);
-
+	return_flag = false;
+	if(result->is_variable_defined()){
+		if(result->get_result_enum() == int_result)
+			file_buffer<<VAR_SPACE << "return : "<<result->get_value().i<<endl;
+		else
+			file_buffer<<VAR_SPACE << "return : "<<std::setprecision(2) << std::fixed <<result->get_value().f<<endl;
+	}
 	return *result;
 }
 

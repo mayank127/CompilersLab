@@ -43,6 +43,7 @@ bool bb_repeat_check(list<Basic_Block *> * bb_list, int bb_number);
 
 Procedure * current_procedure;
 vector<int> goto_numbers;
+bool procedure_decl=true;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -56,7 +57,7 @@ inline int Parser::lex()
     return d_scanner.lex();
 }
 
-inline void Parser::print()         
+inline void Parser::print()
 {
 ////////////////// cfglp print tokens ///////////////////////////////
 

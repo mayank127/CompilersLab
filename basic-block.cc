@@ -53,7 +53,7 @@ int Basic_Block::get_bb_number()
 }
 void Basic_Block::print_bb(ostream & file_buffer)
 {
-	file_buffer << BB_SPACE << "Basic_Block " << id_number << "\n";
+	file_buffer <<endl<< BB_SPACE << "Basic_Block " << id_number << "";
 
 	list<Ast *>::iterator i;
 	for(i = statement_list.begin(); i != statement_list.end(); i++)
@@ -73,7 +73,6 @@ Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file
 	{
 		if((*i) == NULL)
 			report_error ("Ast pointer seems to be NULL", NOLINE);
-		file_buffer<<endl;
 		result = &((*i)->evaluate(eval_env, file_buffer)); 
 	}
 	if(!successor)

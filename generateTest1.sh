@@ -7,15 +7,21 @@ for f in $EFILES
 do
 	echo $f >>out1
 	echo $f >> out2
-	./cfglp -tokens -d $f >>out1
-	./cfglp64 -tokens -d $f >>out2
+	./cfglp -eval -ast -tokens   $f >>out1
+	# ./cfglp64 -tokens -eval -ast  $f >>out2
 done
 
-FILES="ArithRelFn.c       EmptyBB.c         fun_arg_arth_rel.c   mul_fun.c         ParamActualSame.c  recursivecall.c  VoidFnPassParam.c \
-ArithRelInOutFn.c  EmptyFn.c         Glob.c               MultFn.c          PassParam.c        return_float.c   void_function.c \
-CatchFloatInInt.c  Fact.c            GlobInMid.c          NoFnCall.c        PassParamDiff.c    RetVal.c         VoidRet.c \
-CatchRet.c         fn_call_return.c  GlobPassSameParam.c  OperationParam.c  PassParamRet.c     t2.c \
-DTemp.c            FnPrtyp.c         GlobUse.c            OperationRet.c    recursion.c        test.c \
+FILES="ArithBrckt.c       Decl1BB.c         fun_arg_arth_rel.c    IfFloatRelArith.c     MultRelInTernary.c  PassParamRet.c   TempInIfRel.c \
+Arith.c            DeclDef1BB.c      Glob.c                IfIntFloat.c          NestedIf.c          recursion.c      test.c \
+ArithFloat.c       DTemp.c           GlobDeclDef.c         IfIntFloatRelArith.c  recursivecall.c  TwoRelInTernary.c \
+ArithIntFloat.c    EmptyBB.c         GlobInMid.c           IfRelArith.c          NoDeclNoDef1BB.c    RelArithBrckt.c  TypeCast.c \
+ArithRelFn.c       EmptyFn.c         GlobLocSameVar.c      iftmp.c               NoFnCall.c          RelArith.c       Unary.c \
+ArithRelInOutFn.c  EmptyIf.c         GlobNoDeclNoDef1BB.c  IfUnary.c             NotEqInIf.c         RelInCond.c      UnaryPlus.c \
+Brckt.c            Fact.c            GlobPassSameParam.c   IntInFloat.c          OperationParam.c    RelInStmt.c      UserIfTmp.c \
+CatchFloatInInt.c  FloatRelArith.c   GlobRemov.c           mul_fun.c             OperationRet.c      RetInFor.c       VarMain.c \
+CatchRet.c         FloatUnary.c      GlobUse.c             MultFn.c              ParamActualSame.c   return_float.c   VoidFnPassParam.c \
+Const.c            fn_call_return.c  IfArith.c             MultGlob.c            PassParam.c         RetVal.c         void_function.c \
+ContDoWhile.c      FnPrtyp.c         IfFloatArith.c        MultRel.c             PassParamDiff.c     t2.c             VoidRet.c \
 "
 
 for f in $FILES
@@ -28,10 +34,10 @@ FOLDER=./test_files
 
 for f in $FILES
 do
-	echo $f"s306.cfg" >>  out1
+	echo $f"s306.cfg"
 	echo $f"s306.cfg" >> out2
-	./cfglp -tokens -d $FOLDER/$f"s306.cfg" >>out1
-	./cfglp64 -tokens -d $FOLDER/$f"s306.cfg" >>out2
+	./cfglp -eval -ast -tokens $FOLDER/$f"s306.cfg"
+	# ./cfglp64 -tokens -eval -ast  $FOLDER/$f"s306.cfg"
 done
 
 # meld out1 out2

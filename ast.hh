@@ -25,6 +25,7 @@
 #define AST_HH
 
 #include<string>
+#include <vector>
 
 #define AST_SPACE "         "
 #define AST_NODE_SPACE "            "
@@ -34,6 +35,9 @@ enum Relation_Op {LE,LT,GT,GE,EQ,NE };
 using namespace std;
 
 class Ast;
+
+#include "basic-block.hh"
+#include "procedure.hh"
 
 class Ast
 {
@@ -141,9 +145,10 @@ public:
 
 class Return_Ast:public Ast
 {
-
+	Ast* expression;
+	Procedure* procedure;
 public:
-	Return_Ast();
+	Return_Ast(Ast* expr,Procedure* p);
 	~Return_Ast();
 
 	void print_ast(ostream & file_buffer);
@@ -234,6 +239,19 @@ public:
 	~TypeCast_Ast();
 	void print_ast(ostream & file_buffer);
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	Data_Type get_data_type();
+};
+
+class Call_Ast:public Ast{
+	Procedure* procedure;
+	vector<Ast*> expression_list;
+public:
+	Call_Ast(Procedure* proc, vector<Ast*> expr_list);
+	~Call_Ast();
+
+	void print_ast(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast(int line);
 	Data_Type get_data_type();
 };
 

@@ -63,6 +63,12 @@ void Program::set_procedure_map(Procedure & proc)
 	procedure_map[proc.get_proc_name()] = &proc;
 }
 
+Procedure* Program::get_procedure(string name){
+	if(procedure_map[name] != NULL)
+		return procedure_map[name];
+	report_error("Function not declared.", NOLINE);
+}
+
 bool Program::variable_in_symbol_list_check(string variable)
 {
 	return global_symbol_table.variable_in_symbol_list_check(variable);
@@ -103,7 +109,12 @@ void Program::print_ast()
 
 	else
 	{
-		main->print_ast(ast_buffer);
+		map<string, Procedure *>::iterator i;
+		for (i = procedure_map.begin(); i != procedure_map.end(); i++){
+			if(i->second != NULL){
+				(i->second)->print_ast(ast_buffer);
+			}
+		}
 	}
 }
 
@@ -121,7 +132,7 @@ Eval_Result & Program::evaluate()
 	file_buffer << GLOB_SPACE << "Global Variables (before evaluating):\n";
 	interpreter_global_table.print(file_buffer);
 
-	Eval_Result & result = main->evaluate(file_buffer);
+	Eval_Result & result = main->evaluate(file_buffer, vector<Eval_Result_Value*>());
 
 	file_buffer << GLOB_SPACE << "Global Variables (after evaluating):\n";
 	interpreter_global_table.print(file_buffer);

@@ -57,12 +57,12 @@ void Eval_Result::set_variable_status(bool def)
 
 void Eval_Result::set_result_enum(Result_Enum res)
 {
-	report_internal_error("Should not reach, Eval_Result : set_variable_status");
+	report_internal_error("Should not reach, Eval_Result : set_result_enum");
 }
 
 Result_Enum Eval_Result::get_result_enum()
 {
-	report_internal_error("Should not reach, Eval_Result : set_variable_status");
+	report_internal_error("Should not reach, Eval_Result : get_result_enum");
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -174,7 +174,7 @@ void Local_Environment::print(ostream & file_buffer)
 	map<string, Eval_Result_Value *>::iterator i;
 	for (i = variable_table.begin(); i != variable_table.end(); i++)
 	{
-		Eval_Result_Value * vi = variable_table[(*i).first];
+		Eval_Result_Value * vi = (Eval_Result_Value *) i->second;
 		if (vi != NULL)
 		{
 			if (vi->is_variable_defined() == false)
