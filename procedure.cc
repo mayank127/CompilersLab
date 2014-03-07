@@ -84,6 +84,34 @@ void Procedure::set_return_type(Data_Type type)
 	return_type = type;
 }
 
+bool Procedure::check_arguments(vector<Symbol_Table_Entry*> tmp_argument_list, int line){
+	if(tmp_argument_list.size() ==  argument_list.size()){
+		for(int i = 0; i < tmp_argument_list.size();i++){
+			if(!(tmp_argument_list[i]->get_data_type() == argument_list[i]->get_data_type() &&
+				tmp_argument_list[i]->get_variable_name() == argument_list[i]->get_variable_name())){
+				report_error("Formal parameter list of the procedure and its prototype should match.", line);
+			}
+		}
+		return true;
+	}
+	report_error("Formal parameter list of the procedure and its prototype should match.", line);
+	return false;
+}
+
+
+void Procedure::check_call(vector<Data_Type> types, int line){
+	if(types.size() ==  argument_list.size()){
+		for(int i = 0; i < types.size();i++){
+			if(!(types[i] == argument_list[i]->get_data_type())){
+				report_error("Actual and formal parameters donot match", line);
+			}
+		}
+		return;
+	}
+	report_error("Actual and formal parameters donot match", line);
+	return;
+}
+
 bool Procedure::variable_in_symbol_list_check(string variable)
 {
 	return local_symbol_table.variable_in_symbol_list_check(variable);
@@ -187,3 +215,19 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer, vector<Eval_Result_Valu
 	return *result;
 }
 
+
+void Procedure::bb_check_goto_number_exist(int line)
+{
+  int size = basic_block_list.size() + 1;
+  vector<int>::iterator i;
+  for(i = goto_numbers.begin(); i != goto_numbers.end(); i++)
+  {
+
+    if ((*i) < 2 || (*i) > size)
+    {
+      char buffer[128];
+      sprintf(buffer, "bb %d doesn't exist", (*i));
+      report_error(buffer, line);
+    }
+  }
+}

@@ -46,6 +46,8 @@ class Procedure
 public:
 	bool return_flag;
 	vector<Symbol_Table_Entry*> argument_list;
+	vector<int> goto_numbers;
+
 	Procedure(Data_Type proc_return_type, string proc_name, vector<Symbol_Table_Entry*> argument_list);
 	~Procedure();
 
@@ -55,6 +57,7 @@ public:
 	Data_Type get_return_type();
 	void set_return_type(Data_Type type);
 	Symbol_Table_Entry & get_symbol_table_entry(string variable_name);
+	bool check_arguments(vector<Symbol_Table_Entry*> argument_list, int line);
 
 	void print_ast(ostream & file_buffer);
 
@@ -64,6 +67,8 @@ public:
 	Eval_Result & evaluate(ostream & file_buffer, vector<Eval_Result_Value*> args);
 
 	bool variable_in_symbol_list_check(string variable);
+	void bb_check_goto_number_exist(int line);
+	void check_call(vector<Data_Type> types, int line);
 };
 
 #endif

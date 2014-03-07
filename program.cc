@@ -66,7 +66,7 @@ void Program::set_procedure_map(Procedure & proc)
 Procedure* Program::get_procedure(string name){
 	if(procedure_map[name] != NULL)
 		return procedure_map[name];
-	report_error("Function not declared.", NOLINE);
+	report_error("Procedure corresponding to the name is not found.", NOLINE);
 }
 
 bool Program::variable_in_symbol_list_check(string variable)

@@ -91,7 +91,11 @@ program:
 		if($1 != NULL)
 			program_object.set_global_table(*$1);
 	}
-	procedure_list
+	procedure_list{
+		if ($1)
+			$1->global_list_in_proc_map_check(get_line_number());
+		delete $1;
+	}
 |
 	procedure_list
 ;
@@ -105,6 +109,7 @@ procedure_name:
 	NAME '(' argument_list ')'
 	{
 		current_procedure = program_object.get_procedure(*$1);
+		current_procedure->check_arguments(*$3, get_line_number());
 	}
 |
 	NAME '(' ')'
@@ -115,6 +120,7 @@ procedure_name:
 		}
 		else{
 			current_procedure = program_object.get_procedure(*$1);
+			current_procedure->check_arguments(vector<Symbol_Table_Entry*>(), get_line_number());
 		}
 	}
 
@@ -123,7 +129,6 @@ procedure_name:
 procedure_name_decl:
 	NAME '(' argument_list ')' ';'
 	{
-		// declaration
 		$$ = new Procedure(void_data_type, *$1, *$3);
 	}
 |
@@ -169,8 +174,7 @@ procedure_body:
 	{
 
 		current_procedure->set_basic_block_list(*$4);
-
-		// bb_check_goto_number_exist($4);
+		current_procedure->bb_check_goto_number_exist(get_line_number());
 
 		delete $4;
 	}
@@ -178,7 +182,7 @@ procedure_body:
 	'{' basic_block_list '}'
 	{
 		current_procedure->set_basic_block_list(*$2);
-		// bb_check_goto_number_exist($2);
+		current_procedure->bb_check_goto_number_exist(get_line_number());
 
 		delete $2;
 	}
@@ -237,8 +241,6 @@ declaration_statement_list:
 |
 	declaration_statement_list declaration_statement
 	{
-		// if declaration is local then no need to check in global list
-		// if declaration is global then this list is global list
 
 		int line = get_line_number();
 		program_object.variable_in_proc_map_check($2->get_variable_name(), line);
@@ -282,21 +284,18 @@ declaration_statement:
 	INTEGER NAME ';'
 	{
 		$$ = new Symbol_Table_Entry(*$2, int_data_type);
-
 		delete $2;
 	}
 |
 	FLOAT NAME ';'
 	{
 		$$ = new Symbol_Table_Entry(*$2, float_data_type);
-
 		delete $2;
 	}
 |
 	DOUBLE NAME ';'
 	{
 		$$ = new Symbol_Table_Entry(*$2, float_data_type);
-
 		delete $2;
 	}
 ;
@@ -397,11 +396,15 @@ return_statement:
 	RETURN expression ';'
 	{
 		$$ = new Return_Ast($2,current_procedure);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 |
 	RETURN ';'
 	{
 		$$ = new Return_Ast(NULL,current_procedure);
+		int line = get_line_number();
+		$$->check_ast(line);
 	}
 ;
 
@@ -426,7 +429,6 @@ assignment_statement:
 	variable ASSIGN_OP expression ';'
 	{
 		$$ = new Assignment_Ast($1, $3);
-
 		int line = get_line_number();
 		$$->check_ast(line);
 	}
@@ -441,7 +443,7 @@ goto_statement:
 	GOTO basic_block_number ';'
 	{
 		$$ = new Goto_Stmt_Ast($2);
-		// goto_numbers.push_back($2);
+		current_procedure->goto_numbers.push_back($2);
 	}
 ;
 

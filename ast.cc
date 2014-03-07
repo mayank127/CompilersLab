@@ -297,6 +297,29 @@ Return_Ast::~Return_Ast()
 	delete expression;
 }
 
+Data_Type Return_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Return_Ast::check_ast(int line)
+{
+	/*if(expression == NULL && procedure->get_return_type() == void_data_type){
+		node_data_type = void_data_type;
+		return true;
+	}
+	else{
+		report_error("Return statement data type not compatible", line);
+	}
+	if (expression->get_data_type() == procedure->get_return_type()){
+		node_data_type = procedure->get_return_type();
+		return true;
+	}
+
+	report_error("Return statement data type not compatible", line);*/
+	node_data_type = procedure->get_return_type();
+}
+
 void Return_Ast::print_ast(ostream & file_buffer)
 {
 	file_buffer <<endl<< AST_SPACE << "RETURN ";
@@ -880,7 +903,11 @@ Data_Type Call_Ast::get_data_type()
 
 bool Call_Ast::check_ast(int line)
 {
-
+	vector<Data_Type> types;
+	for(int i=0;i<expression_list.size();i++){
+		types.push_back(expression_list[i]->get_data_type());
+	}
+	procedure->check_call(types, line);
 	node_data_type = procedure->get_return_type();
 	return true;
 }
