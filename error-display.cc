@@ -44,9 +44,9 @@ void report_error(string error_message, int line)
 
 	stringstream message;
 	if (line > NOLINE)
-		message << file_name << " : line " << line << " :: error : " << error_message;
+		message << "cfglp error: File: " <<file_name << ", Line " << line << " :: error : " << error_message;
 	else
-		message << file_name << " :: cfglp error : " << error_message;
+		message << "cfglp error: File: "<< file_name << " :: cfglp error : " << error_message;
 	print_error(message.str(), NOTEXIT);
 	command_options.delete_files();
 	exit(0);
