@@ -206,6 +206,15 @@ argument_list:
 		int line = get_line_number();
 		program_object.variable_in_proc_map_check($3->get_variable_name(), line);
 
+		string var_name = $3->get_variable_name();
+
+		for(int i=0; i< (*$1).size(); i++){
+			if((*$1)[i]->get_variable_name() == var_name){
+				report_error("Formal parameters can not be identical.", line);
+			}
+		}
+
+
 		$1->push_back($3);
 		$$ = $1;
 	}
@@ -214,8 +223,8 @@ argument_list:
 	{
 		int line = get_line_number();
 		program_object.variable_in_proc_map_check($1->get_variable_name(), line);
-
-		$$ = new vector<Symbol_Table_Entry*>;
+		
+		$$ = new vector<Symbol_Table_Entry*>();
 		$$->push_back($1);
 	}
 ;

@@ -16,7 +16,7 @@ cd test_files/; FILES=$(ls *.c); cd ..;
 for f in $FILES
 do
 	echo $f
-	# make -f Makefile.cfg FILE=$f
+	make -f Makefile.cfg FILE=$f
 done
 
 FOLDER=./test_files
