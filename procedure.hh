@@ -69,6 +69,7 @@ public:
 	bool variable_in_symbol_list_check(string variable);
 	void bb_check_goto_number_exist(int line);
 	void check_call(vector<Data_Type> types, int line);
+	void check_with_argument_list(string var, int line);
 };
 
 #endif

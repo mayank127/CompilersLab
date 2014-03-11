@@ -204,14 +204,22 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer, vector<Eval_Result_Valu
 
 	file_buffer << "\n\n";
 	file_buffer << LOC_VAR_SPACE << "Local Variables (after evaluating) Function: << "<< name <<" >>\n";
+	if(result->is_variable_defined()){
+		if(result->get_result_enum() == int_result){
+			Eval_Result_Value *res = new Eval_Result_Value_Int();
+			res->set_value(result->get_value().i);
+			eval_env.put_variable_value(*res, "return");
+		}
+		else{
+			Eval_Result_Value *res = new Eval_Result_Value_Float();
+			res->set_value(result->get_value().f);
+			eval_env.put_variable_value(*res, "return");
+		}
+			
+	}
 	eval_env.print(file_buffer);
 	return_flag = false;
-	if(result->is_variable_defined()){
-		if(result->get_result_enum() == int_result)
-			file_buffer<<VAR_SPACE << "return : "<<result->get_value().i<<endl;
-		else
-			file_buffer<<VAR_SPACE << "return : "<<std::setprecision(2) << std::fixed <<result->get_value().f<<endl;
-	}
+	
 	return *result;
 }
 
@@ -222,12 +230,26 @@ void Procedure::bb_check_goto_number_exist(int line)
   vector<int>::iterator i;
   for(i = goto_numbers.begin(); i != goto_numbers.end(); i++)
   {
-
-    if ((*i) < 2 || (*i) > size)
-    {
-      char buffer[128];
-      sprintf(buffer, "bb %d doesn't exist", (*i));
-      report_error(buffer, line);
-    }
+  	list<Basic_Block*>::iterator j;
+  	int flag = 0;
+  	for(j = basic_block_list.begin(); j!= basic_block_list.end(); j++){
+  		if((*j)->get_bb_number() == *i){
+  			flag = 1;
+  			break;
+  		}
+  	}
+  	if(flag == 0){
+  		char buffer[128];
+    	sprintf(buffer, "bb %d doesn't exist", (*i));
+    	report_error(buffer, line);
+  	}
   }
+}
+
+void Procedure::check_with_argument_list(string var, int line){
+	for(int i=0;i<argument_list.size();i++){
+		if(var == argument_list[i]->get_variable_name()){
+			report_error("Formal parameter and local variable name cannot be same", line);
+		}
+	}
 }

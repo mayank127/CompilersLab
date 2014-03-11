@@ -102,26 +102,38 @@ program:
 
 procedure_list:
 	procedure_name procedure_body
+	{
+		if(!return_check){
+			report_error("Last return statement type, of procedure, and its prototype should match", get_line_number());
+		}
+	}
 |
 	procedure_list procedure_name procedure_body
+	{
+		if(!return_check){
+			report_error("Last return statement type, of procedure, and its prototype should match", get_line_number());
+		}
+	}
 ;
 procedure_name:
 	NAME '(' argument_list ')'
 	{
 		current_procedure = program_object.get_procedure(*$1);
+		if(current_procedure == NULL){
+			report_internal_error_end("Procedure prototype cannot be null");
+		}
 		current_procedure->check_arguments(*$3, get_line_number());
+		return_check = false;
 	}
 |
 	NAME '(' ')'
 	{
-		if(*$1=="main"){
-			current_procedure = new Procedure(void_data_type, *$1, vector<Symbol_Table_Entry*>());
-			program_object.set_procedure_map(*current_procedure);
+		current_procedure = program_object.get_procedure(*$1);
+		if(current_procedure == NULL){
+			report_internal_error_end("Procedure prototype cannot be null");
 		}
-		else{
-			current_procedure = program_object.get_procedure(*$1);
-			current_procedure->check_arguments(vector<Symbol_Table_Entry*>(), get_line_number());
-		}
+		current_procedure->check_arguments(vector<Symbol_Table_Entry*>(), get_line_number());
+		return_check = false;
 	}
 
 ;
@@ -190,13 +202,19 @@ procedure_body:
 
 argument_list:
 	argument_list ',' argument
-	{
+	{	
+		int line = get_line_number();
+		program_object.variable_in_proc_map_check($3->get_variable_name(), line);
+
 		$1->push_back($3);
 		$$ = $1;
 	}
 |
 	argument
 	{
+		int line = get_line_number();
+		program_object.variable_in_proc_map_check($1->get_variable_name(), line);
+
 		$$ = new vector<Symbol_Table_Entry*>;
 		$$->push_back($1);
 	}
@@ -229,10 +247,10 @@ declaration_statement_list:
 		program_object.variable_in_proc_map_check($1->get_variable_name(), line);
 
 		string var_name = $1->get_variable_name();
-		if (current_procedure && current_procedure->get_proc_name() == var_name)
+		if (current_procedure)
 		{
 			int line = get_line_number();
-			report_error("Variable name cannot be same as procedure name", line);
+			current_procedure->check_with_argument_list(var_name, line);
 		}
 
 		$$ = new Symbol_Table();
@@ -246,10 +264,10 @@ declaration_statement_list:
 		program_object.variable_in_proc_map_check($2->get_variable_name(), line);
 
 		string var_name = $2->get_variable_name();
-		if (current_procedure && current_procedure->get_proc_name() == var_name)
+		if (current_procedure)
 		{
 			int line = get_line_number();
-			report_error("Variable name cannot be same as procedure name", line);
+			current_procedure->check_with_argument_list(var_name, line);
 		}
 
 		if ($1 != NULL)
@@ -397,14 +415,14 @@ return_statement:
 	{
 		$$ = new Return_Ast($2,current_procedure);
 		int line = get_line_number();
-		$$->check_ast(line);
+		return_check |= $$->check_ast(line);
 	}
 |
 	RETURN ';'
 	{
 		$$ = new Return_Ast(NULL,current_procedure);
 		int line = get_line_number();
-		$$->check_ast(line);
+		return_check |= $$->check_ast(line);
 	}
 ;
 
@@ -671,6 +689,6 @@ constant:
 |
 	FNUM
 	{
-		$$ = new Number_Ast<float>($1, float_data_type);
+		$$ = new Number_Ast<double>($1, float_data_type);
 	}
 ;
