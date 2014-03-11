@@ -1,11 +1,13 @@
+int f(int);
+main(){
+	int x=4;
+	int fib;
+	fib=f(x);
+}
 
-main()
-{
-	float f=5,b=1;
-do{
-
-b=b*f;
-f=f-1;	
-}while(f>0);
-
+int f(int a){
+	if(a==0)
+		return 1;
+	else
+		return a*f(a-1);
 }
