@@ -23,6 +23,7 @@
 
 #include<string>
 #include<fstream>
+#include<iomanip>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ void Eval_Result::set_value(int number)
 	report_internal_error("Should not reach, Eval_Result : set_value");
 }
 
-void Eval_Result::set_value(float number)
+void Eval_Result::set_value(double number)
 {
 	report_internal_error("Should not reach, Eval_Result : set_value");
 }
@@ -71,7 +72,7 @@ void Eval_Result_Value::set_value(int number)
 	report_internal_error("Should not reach, Eval_Result : set_value");
 }
 
-void Eval_Result_Value::set_value(float number)
+void Eval_Result_Value::set_value(double number)
 {
 	report_internal_error("Should not reach, Eval_Result : set_value");
 }
@@ -129,7 +130,7 @@ Eval_Result_Value_Float::Eval_Result_Value_Float()
 Eval_Result_Value_Float::~Eval_Result_Value_Float()
 { }
 
-void Eval_Result_Value_Float::set_value(float number)
+void Eval_Result_Value_Float::set_value(double number)
 {
 	value.f = number;
 	defined = true;
@@ -184,7 +185,7 @@ void Local_Environment::print(ostream & file_buffer)
 				if(vi->get_result_enum() == int_result)
 					file_buffer << VAR_SPACE << (*i).first << " : " << vi->get_value().i << "\n";
 				else if(vi->get_result_enum() == float_result)
-					file_buffer << VAR_SPACE << (*i).first << " : " << vi->get_value().f << "\n";
+					file_buffer << std::fixed<<std::setprecision(2)<<VAR_SPACE << (*i).first << " : " << vi->get_value().f << "\n";
 		}
 	}
 }

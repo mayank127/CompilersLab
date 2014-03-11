@@ -282,7 +282,7 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 
 
 template class Number_Ast<int>;
-template class Number_Ast<float>;
+template class Number_Ast<double>;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -304,20 +304,21 @@ Data_Type Return_Ast::get_data_type()
 
 bool Return_Ast::check_ast(int line)
 {
-	/*if(expression == NULL && procedure->get_return_type() == void_data_type){
+	if(expression == NULL && procedure->get_return_type() == void_data_type){
 		node_data_type = void_data_type;
+		return true;
+	}
+	else if(expression == NULL){
+		node_data_type = void_data_type;
+		return false;
+	}
+	else if (expression->get_data_type() == procedure->get_return_type()){
+		node_data_type = procedure->get_return_type();
 		return true;
 	}
 	else{
 		report_error("Return statement data type not compatible", line);
 	}
-	if (expression->get_data_type() == procedure->get_return_type()){
-		node_data_type = procedure->get_return_type();
-		return true;
-	}
-
-	report_error("Return statement data type not compatible", line);*/
-	node_data_type = procedure->get_return_type();
 }
 
 void Return_Ast::print_ast(ostream & file_buffer)
@@ -339,8 +340,6 @@ Eval_Result & Return_Ast::evaluate(Local_Environment & eval_env, ostream & file_
 		result = &(expression->evaluate(eval_env, file_buffer));
 	else{
 		result = new Eval_Result_Value_Int();
-		result->set_value(-1);
-		result->set_variable_status(false);
 	}
 	return *result;
 }
@@ -445,8 +444,8 @@ Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream
 	Eval_Result & result = * new Eval_Result_Value_Int();
 	Eval_Result & resultRight = rhs->evaluate(eval_env, file_buffer);
 
-	float left;
-	float right;
+	double left;
+	double right;
 	if(resultLeft.get_result_enum()==int_result){
 		left = resultLeft.get_value().i;
 	}
@@ -864,7 +863,7 @@ Eval_Result & TypeCast_Ast::evaluate(Local_Environment & eval_env, ostream & fil
 	if (node_data_type == float_data_type){
 		result = new Eval_Result_Value_Float();
 		if(lresult.get_result_enum() == int_result){
-			result->set_value((float)lresult.get_value().i);
+			result->set_value((double)lresult.get_value().i);
 		}
 		else{
 			result->set_value(lresult.get_value().f);

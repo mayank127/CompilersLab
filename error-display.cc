@@ -43,10 +43,10 @@ void report_error(string error_message, int line)
 	string file_name = command_options.get_file_name();
 
 	stringstream message;
-	if (line > NOLINE)
-		message << "cfglp error: File: " <<file_name << ", Line " << line << " :: error : " << error_message;
-	else
-		message << "cfglp error: File: "<< file_name << " :: cfglp error : " << error_message;
+	//if (line > NOLINE)
+		message << "cfglp error: File: " <<file_name << ", Line: " << line << ": " << error_message << endl;
+	//else
+	//	message << "cfglp error: File: "<< file_name << " :: cfglp error : " << error_message;
 	print_error(message.str(), NOTEXIT);
 	command_options.delete_files();
 	exit(0);

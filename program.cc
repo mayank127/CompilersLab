@@ -60,13 +60,17 @@ void Program::set_global_table(Symbol_Table & new_global_table)
 
 void Program::set_procedure_map(Procedure & proc)
 {
-	procedure_map[proc.get_proc_name()] = &proc;
+	if(procedure_map[proc.get_proc_name()]==NULL)
+		procedure_map[proc.get_proc_name()] = &proc;
+	else
+		report_error("Overloading of the procedure is not allowed", NOLINE);
 }
 
 Procedure* Program::get_procedure(string name){
 	if(procedure_map[name] != NULL)
 		return procedure_map[name];
-	report_error("Procedure corresponding to the name is not found.", NOLINE);
+	report_error("Procedure corresponding to the name is not found", NOLINE);
+	return NULL;
 }
 
 bool Program::variable_in_symbol_list_check(string variable)

@@ -36,4 +36,13 @@ void report_error(string error_message, int line);
 void print_error(string error_message, int exit_flag);
 void report_internal_error(string error_message);
 
+#define report_internal_error_end(error_message)                  \
+  {                       \
+    stringstream message;                 \
+    message << "cfglp internal error: ";               \
+    message << error_message; \
+    message << " (Inavariant at line "<<__LINE__<<", file "<<__FILE__<<").";  \
+    print_error(message.str(), 1);                \
+  }
+
 #endif

@@ -5,9 +5,9 @@ echo "" > out2
 EFILES=./test_files/*.ecfg
 for f in $EFILES
 do
-	echo $f >>out1
+	echo $f"1" >>out1
 	./cfglp -eval -ast -tokens  -d $f >>out1
-	echo $f >> out2
+	echo $f"2" >> out2
 	./cfglp64 -tokens -eval -ast  -d $f >>out2
 done
 

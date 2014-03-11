@@ -43,7 +43,7 @@ bool bb_repeat_check(list<Basic_Block *> * bb_list, int bb_number);
 
 Procedure * current_procedure;
 bool procedure_decl=true;
-
+bool return_check = false;
 //////////////////////////////////////////////////////////////////////
 
 inline void Parser::error(char const *msg)

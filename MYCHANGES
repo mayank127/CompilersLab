@@ -1,22 +1,16 @@
 Mayank Meghwanshi 110050012
 Vivek Agarwal 110050042
 
-In file local-environment.hh:
-	1. Added a 'union' named 'Value' to deal with the integer and float values of the result of Eval_Result class and its inherited classes.
-	2. Created new classs named Eval_Result_Value_Float to deal with the float result values.
-
-In file local-environment.cc:
-	1. Modified the various class functions to suit according the new union construct 'Value'.
 
 In file ast.cc:
-	1. In all ASTs, the evaluate() functions were modified to deal with the case of float result values.
-	2. Created new ASTs namely :
-		Plus_Ast : To deal with  addition expressions
-		Minus_Ast : To deal with subtraction expressionss
-		Multiplication_Ast : To deal with multiplicative expressions
-		Division_Ast : To deal with division expressions
-		Unary_Ast : To deal with  unary expressions
-		TypeCast_Ast : To deal with typecasting entities.
+	1. Modified return ast which now deals with the return type. 
+	2. Added call_ast which deals with the function calls. 
+
+In file procedure.cc :
+	1. Added the function check_arguments() which checks whether the declaration and definition of the procedure match.
+	2. Added the function check_call() checks if the function call is valid. 
+	3. Added the function bb_check_goto_number_exist() which checks if all the goto statements actually exist. 
+	4. Added the function check_with_argument_list() to check whether the local variable is same as the formal parameters.
 
 In file parser.yy:
-	1. Added action routines for arithmetic expressions, typecast expressions and float constants.
+	1. Added the action procedures for the new grammar ( which was added in part 3-a assignment)

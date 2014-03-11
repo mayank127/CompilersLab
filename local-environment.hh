@@ -40,7 +40,7 @@ typedef enum
 
 union Value{
 	int i;
-	float f; 
+	double f; 
 };
 
 class Eval_Result;
@@ -54,7 +54,7 @@ protected:
 public:
 	virtual Value get_value();
 	virtual void set_value(int value);
-	virtual void set_value(float value);
+	virtual void set_value(double value);
 
 	virtual bool is_variable_defined();
 	virtual void set_variable_status(bool def);
@@ -67,7 +67,7 @@ class Eval_Result_Value:public Eval_Result
 {
 public:
 	virtual void set_value(int number);
-	virtual void set_value(float value);
+	virtual void set_value(double value);
 	virtual Value get_value() = 0;
 
 	virtual bool is_variable_defined() = 0;
@@ -103,7 +103,7 @@ public:
 	Eval_Result_Value_Float();
 	~Eval_Result_Value_Float();
 
-	void set_value(float number);
+	void set_value(double number);
 	Value get_value();
 
 	void set_variable_status(bool def);
