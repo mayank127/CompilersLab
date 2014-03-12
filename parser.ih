@@ -44,6 +44,7 @@ bool bb_repeat_check(list<Basic_Block *> * bb_list, int bb_number);
 Procedure * current_procedure;
 bool procedure_decl=true;
 bool return_check = false;
+vector<string> functions_called;
 //////////////////////////////////////////////////////////////////////
 
 inline void Parser::error(char const *msg)
@@ -90,5 +91,14 @@ inline void Parser::bb_strictly_increasing_order_check(list<Basic_Block *> * bb_
 	}
 }
 ///////////////////////////////////////////////////////////////////
+
+
+inline bool check_function_called_exist(){
+  for(int i=0;i<functions_called.size();i++){
+    if(!(program_object.get_procedure(functions_called[i])->isDefined())){
+      report_error("Function called should be defined before use.", NOLINE);
+    }
+  }
+}
 
 #endif

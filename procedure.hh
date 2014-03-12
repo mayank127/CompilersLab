@@ -70,6 +70,7 @@ public:
 	void bb_check_goto_number_exist(int line);
 	void check_call(vector<Data_Type> types, int line);
 	void check_with_argument_list(string var, int line);
+	bool isDefined();
 };
 
 #endif

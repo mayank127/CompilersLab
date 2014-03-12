@@ -95,9 +95,13 @@ program:
 		if ($1)
 			$1->global_list_in_proc_map_check(get_line_number());
 		delete $1;
+		check_function_called_exist();
 	}
 |
 	procedure_list
+	{
+		check_function_called_exist();
+	}
 ;
 
 procedure_list:
@@ -645,6 +649,7 @@ function_call:
 		$$ = new Call_Ast(program_object.get_procedure(*$1),*$3);
 		int line = get_line_number();
 		$$->check_ast(line);
+		functions_called.push_back(*$1);
 	}
 |
 	NAME '(' ')'
@@ -652,6 +657,7 @@ function_call:
 		$$ = new Call_Ast(program_object.get_procedure(*$1), vector<Ast*>());
 		int line = get_line_number();
 		$$->check_ast(line);
+		functions_called.push_back(*$1);
 	}
 ;
 

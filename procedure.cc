@@ -124,6 +124,9 @@ Symbol_Table_Entry & Procedure::get_symbol_table_entry(string variable_name)
 
 void Procedure::print_ast(ostream & file_buffer)
 {
+	if(basic_block_list.empty()){
+		report_error("Procedure not defined before use.", NOLINE);
+	}
 	file_buffer << PROC_SPACE << "Procedure: "<< name << "\n";
 
 	list<Basic_Block *>::iterator i;
@@ -173,6 +176,9 @@ Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb, int previous_resu
 
 Eval_Result & Procedure::evaluate(ostream & file_buffer, vector<Eval_Result_Value*> args)
 {
+	if(basic_block_list.empty()){
+		report_error("Procedure not defined before use.", NOLINE);
+	}
 	return_flag = false;
 	Local_Environment & eval_env = *new Local_Environment();
 	local_symbol_table.create(eval_env);
@@ -252,4 +258,8 @@ void Procedure::check_with_argument_list(string var, int line){
 			report_error("Formal parameter and local variable name cannot be same", line);
 		}
 	}
+}
+
+bool Procedure::isDefined(){
+	return (basic_block_list.size()>0);
 }
