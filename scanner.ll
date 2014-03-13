@@ -36,12 +36,9 @@ return		{
 			return Parser::RETURN; 
 		}
 
-[<>:{}();=]	{
-			store_token_name("META CHAR");
-			return matched()[0];
-		}
 
-[-]?[[:digit:]_]+ 	{ 
+
+[-]?[[:digit:]]+ 	{ 
 				store_token_name("NUM");
 
 				ParserBase::STYPE__ * val = getSval();
@@ -59,12 +56,33 @@ return		{
 					return Parser::NAME; 
 				}
 
-\n		{ 
-			if (command_options.is_show_tokens_selected())
-				ignore_token();
-		}    
+"<bb "[[:digit:]]+">"	{
+				store_token_name("BASIC BLOCK");
 
+				string bb_num_str = matched().substr(4, matched().length() - 2);
+				CHECK_INPUT_AND_ABORT((atoi(bb_num_str.c_str()) >= 2), "Illegal basic block lable", lineNr());
+
+				ParserBase::STYPE__ * val = getSval();
+				val->integer_value = atoi(bb_num_str.c_str());
+
+				return Parser::BBNUM;
+			}
+
+"="	{
+		store_token_name("ASSIGN_OP");
+		return Parser::ASSIGN;
+	}
+
+[:{}();]	{
+			store_token_name("META CHAR");
+			return matched()[0];
+		}
+
+
+\n    		|
 ";;".*  	|
+[ \t]*";;".*	|
+[ \t]*"//".*	|
 [ \t]		{
 			if (command_options.is_show_tokens_selected())
 				ignore_token();
@@ -75,6 +93,5 @@ return		{
 			error_message =  "Illegal character `" + matched();
 			error_message += "' on line " + lineNr();
 			
-			int line_number = lineNr();
-			report_error(error_message, line_number);
+			CHECK_INPUT(CONTROL_SHOULD_NOT_REACH, error_message, lineNr());
 		}

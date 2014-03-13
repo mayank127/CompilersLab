@@ -1,2 +1,4 @@
+all:
+
 clean:
-	rm *.cfg *.ast *.toks *.eval
+	rm -f *.cfg *.ast *.toks *.eval cfgpp* Makefile.cfg plugin*.so
