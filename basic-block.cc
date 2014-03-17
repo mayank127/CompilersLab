@@ -92,6 +92,9 @@ void Basic_Block::compile()
 
 	machine_dscr_object.validate_init_local_register_mapping();
 
+	Icode_Stmt * label_stmt = new Label_IC_Stmt(label, new Const_Opd<int>(id_number));
+	bb_icode_list.push_back(label_stmt);
+
 	// compile the program by visiting each ast in the block
 	list<Ast *>::iterator i;
 	for (i = statement_list.begin(); i != statement_list.end(); i++)
