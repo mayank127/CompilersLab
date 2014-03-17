@@ -84,7 +84,6 @@ Symbol_Table_Entry & Procedure::get_symbol_table_entry(string variable_name)
 {
 	return local_symbol_table.get_symbol_table_entry(variable_name);
 }
-
 void Procedure::print(ostream & file_buffer)
 {
 	CHECK_INVARIANT((return_type == void_data_type), "Only void return type of funtion is allowed");
@@ -104,30 +103,63 @@ void Procedure::print(ostream & file_buffer)
 			(*i)->print_bb(file_buffer);
 	}
 }
-
 Basic_Block & Procedure::get_start_basic_block()
 {
 	list<Basic_Block *>::iterator i;
 	i = basic_block_list.begin();
 	return **i;
 }
-
-Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb)
+void Procedure::bb_check_goto_number_exist()
+{
+  int size = basic_block_list.size() + 1;
+  vector<int>::iterator i;
+  for(i = goto_numbers.begin(); i != goto_numbers.end(); i++)
+  {
+  	list<Basic_Block*>::iterator j;
+  	int flag = 0;
+  	for(j = basic_block_list.begin(); j!= basic_block_list.end(); j++){
+  		if((*j)->get_bb_number() == *i){
+  			flag = 1;
+  			break;
+  		}
+  	}
+  	if(flag == 0){
+  		char buffer[128];
+    	sprintf(buffer, "bb %d doesn't exist", (*i));
+    	CHECK_INVARIANT(false, buffer);
+  	}
+  }
+}
+Basic_Block * Procedure::get_next_bb(Basic_Block & current_bb, int previous_result)
 {
 	bool flag = false;
-
-	list<Basic_Block *>::iterator i;
-	for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
+	if(previous_result == 0)
 	{
-		if((*i)->get_bb_number() == current_bb.get_bb_number())
+		list<Basic_Block *>::iterator i;
+		for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
 		{
-			flag = true;
-			continue;
+			if((*i)->get_bb_number() == current_bb.get_bb_number())
+			{
+				flag = true;
+				continue;
+			}
+			if (flag)
+				return (*i);
 		}
-		if (flag)
-			return (*i);
 	}
-	
+	else if(previous_result == -1) return NULL;
+	else
+	{
+		list<Basic_Block *>::iterator i;
+		for(i = basic_block_list.begin(); i != basic_block_list.end(); i++)
+		{
+			if((*i)->get_bb_number() == previous_result)
+			{
+				return *i;
+			}
+		}
+	}
+
 	return NULL;
 }
 
@@ -135,19 +167,22 @@ Eval_Result & Procedure::evaluate(ostream & file_buffer)
 {
 	Local_Environment & eval_env = *new Local_Environment();
 	local_symbol_table.create(eval_env);
-	
+
 	Eval_Result * result = NULL;
 
 	file_buffer << PROC_SPACE << "Evaluating Procedure " << name << "\n";
 	file_buffer << LOC_VAR_SPACE << "Local Variables (before evaluating):\n";
 	eval_env.print(file_buffer);
 	file_buffer << "\n";
-	
+
 	Basic_Block * current_bb = &(get_start_basic_block());
 	while (current_bb)
 	{
 		result = &(current_bb->evaluate(eval_env, file_buffer));
-		current_bb = get_next_bb(*current_bb);		
+		if(result)
+			current_bb = get_next_bb(*current_bb, result->get_int_value());
+		else
+			current_bb = NULL;
 	}
 
 	file_buffer << "\n\n";

@@ -38,12 +38,15 @@
 	Basic_Block * basic_block;
 	list<Basic_Block *> * basic_block_list;
 	Procedure * procedure;
+	Relation_Op relation_op;
 };
 
 %token <integer_value> INTEGER_NUMBER BBNUM
 %token <string_value> NAME
-%token RETURN INTEGER 
-%token ASSIGN
+%token RETURN INTEGER IF ELSE GOTO ASSIGN_OP
+
+%left <relation_op> NE EQ
+%left <relation_op> LT LE GT GE
 
 %type <symbol_table> optional_variable_declaration_list
 %type <symbol_table> variable_declaration_list
@@ -54,6 +57,10 @@
 %type <ast_list> executable_statement_list
 %type <ast_list> assignment_statement_list
 %type <ast> assignment_statement
+%type <ast> if_statement
+%type <ast> goto_statement
+%type <ast> expression
+%type <ast> conditional_expression
 %type <ast> variable
 %type <ast> constant
 
@@ -135,6 +142,7 @@ procedure_definition:
 		CHECK_INVARIANT((bb_list != NULL), "Basic block list cannot be null");
 
 		current_procedure->set_basic_block_list(*bb_list);
+		current_procedure->bb_check_goto_number_exist();
 	}
 	}
 ;
@@ -265,6 +273,7 @@ basic_block_list:
 
 		bb_strictly_increasing_order_check(bb_list, bb->get_bb_number());
 
+		bb_list->back()->set_successor(true);
 		bb_list->push_back($2);
 		$$ = bb_list;
 	}
@@ -298,12 +307,15 @@ basic_block:
 
 		Basic_Block * bb = new Basic_Block(bb_number, get_line_number());
 
-		if (exe_stmt != NULL)
+		if (exe_stmt != NULL){
 			bb->set_ast_list(*exe_stmt);
+			bb->set_successor(check_bb_has_successor);
+		}
 		else
 		{
 			list<Ast *> * ast_list = new list<Ast *>;
 			bb->set_ast_list(*ast_list);
+			bb->set_successor(false);
 		}
 
 		$$ = bb;
@@ -317,6 +329,35 @@ executable_statement_list:
 	if (NOT_ONLY_PARSE)
 	{
 		$$ = $1;
+		check_bb_has_successor = false;
+	}
+	}
+|
+	assignment_statement_list goto_statement
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		if ($1 != NULL)
+			$$ = $1;
+
+		else
+			$$ = new list<Ast *>;
+		check_bb_has_successor = true;
+		$$->push_back($2);
+	}
+	}
+|
+	assignment_statement_list if_statement
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		if ($1 != NULL)
+			$$ = $1;
+
+		else
+			$$ = new list<Ast *>;
+		check_bb_has_successor = true;
+		$$->push_back($2);
 	}
 	}
 |
@@ -335,7 +376,7 @@ executable_statement_list:
 			exe_list = new list<Ast *>;
 
 		exe_list->push_back(ret);
-
+		check_bb_has_successor = true;
 		$$ = exe_list;
 	}
 	}
@@ -373,7 +414,7 @@ assignment_statement_list:
 ;
 
 assignment_statement:
-	variable ASSIGN variable ';'
+	variable ASSIGN_OP expression ';'
 	{
 	if (NOT_ONLY_PARSE)
 	{
@@ -387,23 +428,118 @@ assignment_statement:
 		assign->check_ast();
 
 		$$ = assign;
+	}
+	}
+;
+
+goto_statement:
+	GOTO BBNUM ';'
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Goto_Stmt_Ast($2, get_line_number());
+		current_procedure->goto_numbers.push_back($2);
+	}
+	}
+;
+
+if_statement:
+	IF '(' conditional_expression ')' goto_statement ELSE goto_statement
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new If_Else_Stmt_Ast($3, $5, $7, get_line_number());
+	}
+	}
+;
+
+
+conditional_expression:
+	expression GT expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
 	}
 	}
 |
-	variable ASSIGN constant ';'
+	expression LT expression
 	{
 	if (NOT_ONLY_PARSE)
 	{
-		CHECK_INVARIANT((($1 != NULL) && ($3 != NULL)), "lhs/rhs cannot be null");
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression GE expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression LE expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression EQ expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression NE expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Relational_Expr_Ast($1, $3, $2, get_line_number());
+		$$->check_ast();
+	}
+	}
+;
 
-		Ast * lhs = $1;
-		Ast * rhs = $3;
-
-		Ast * assign = new Assignment_Ast(lhs, rhs, get_line_number());
-
-		assign->check_ast();
-
-		$$ = assign;
+expression:
+	constant
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $1;
+	}
+	}
+|
+	variable
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $1;
+	}
+	}
+|
+	conditional_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $1;
+	}
+	}
+|
+	'(' expression ')'
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $2;
 	}
 	}
 ;

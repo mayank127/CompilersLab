@@ -35,7 +35,58 @@ return		{
 			store_token_name("RETURN");
 			return Parser::RETURN; 
 		}
-
+if		{
+			store_token_name("IF");
+			return Parser::IF;
+		}
+else	{
+			store_token_name("ELSE");
+			return Parser::ELSE;
+		}
+goto	{
+			store_token_name("GOTO");
+			return Parser::GOTO;
+		}
+\<=		{
+			store_token_name("LE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = LE;
+			return Parser::LE;
+		}
+\>=		{
+			store_token_name("GE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = GE;
+			return Parser::GE;
+		}
+\>		{
+			store_token_name("GT");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = GT;
+			return Parser::GT;
+		}
+\<		{
+			store_token_name("LT");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = LT;
+			return Parser::LT;
+		}
+==		{
+			store_token_name("EQ");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = EQ;
+			return Parser::EQ;
+		}
+!=		{
+			store_token_name("NE");
+			ParserBase::STYPE__ * val = getSval();
+			val->integer_value = NE;
+			return Parser::NE;
+		}
+=		{
+			store_token_name("ASSIGN_OP");
+			return Parser::ASSIGN_OP;
+		}
 
 
 [-]?[[:digit:]]+ 	{ 
@@ -67,11 +118,6 @@ return		{
 
 				return Parser::BBNUM;
 			}
-
-"="	{
-		store_token_name("ASSIGN_OP");
-		return Parser::ASSIGN;
-	}
 
 [:{}();]	{
 			store_token_name("META CHAR");

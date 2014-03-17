@@ -73,13 +73,14 @@ class Parser: public ParserBase
 	int get_line_number();					// Used for errors
 
 	bool NOT_ONLY_PARSE;
+	bool check_bb_has_successor;
 
     private:
         void error(char const *msg);
         int lex();
 
 	void bb_strictly_increasing_order_check(list<Basic_Block *> * bb_list, int bb_number); 
-        
+
 	void executeAction(int ruleNr);
         void errorRecovery();
         int lookup(bool recovery);

@@ -42,6 +42,7 @@ class Basic_Block
 	list<Icode_Stmt *> bb_icode_list;
 
 	int lineno;
+	bool successor;
 
 public:
 	Basic_Block(int basic_block_number, int line);
@@ -53,6 +54,9 @@ public:
 	void print_bb(ostream & file_buffer);
 
 	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+
+	void set_successor(bool successor);
+	bool get_successor();
 
 	// compile
 	void compile();

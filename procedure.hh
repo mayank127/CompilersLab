@@ -45,6 +45,7 @@ class Procedure
 	int lineno;
 
 public:
+	vector<int> goto_numbers;
 	Procedure(Data_Type proc_return_type, string proc_name, int line);
 	~Procedure();
 
@@ -56,12 +57,13 @@ public:
 
 	void print(ostream & file_buffer);
 
-	Basic_Block * get_next_bb(Basic_Block & current_bb);
+	Basic_Block * get_next_bb(Basic_Block & current_bb, int previous_result);
 	Basic_Block & get_start_basic_block();
 
 	Eval_Result & evaluate(ostream & file_buffer);
 
 	bool variable_in_symbol_list_check(string variable);
+	void bb_check_goto_number_exist();
 
 	// compile
 	void compile();

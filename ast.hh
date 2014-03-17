@@ -36,6 +36,8 @@
 
 using namespace std;
 
+enum Relation_Op {LE,LT,GT,GE,EQ,NE };
+
 class Ast;
 
 class Ast
@@ -67,6 +69,7 @@ public:
 	virtual Eval_Result & get_value_of_evaluation(Local_Environment & eval_env);
 	virtual void set_value_of_evaluation(Local_Environment & eval_env, Eval_Result & result);
 	virtual Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer) = 0;
+	virtual int get_block_number();
 
 	virtual Code_For_Ast & compile() = 0;
 	virtual Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra) = 0;
@@ -140,6 +143,59 @@ class Return_Ast:public Ast
 public:
 	Return_Ast(int line);
 	~Return_Ast();
+
+	void print(ostream & file_buffer);
+
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+
+class Relational_Expr_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+	Relation_Op op;
+public:
+	Relational_Expr_Ast(Ast* temp_lhs, Ast* temp_rhs, Relation_Op temp_op, int line);
+	~Relational_Expr_Ast();
+
+	Data_Type get_data_type();
+	bool check_ast();
+
+	Relation_Op get_relational_op();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment& eval_env, ostream& file_buffer);
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+
+};
+
+
+class Goto_Stmt_Ast: public Ast {
+	int block_number;
+public:
+	Goto_Stmt_Ast(int temp_block_num, int line);
+	~Goto_Stmt_Ast();
+
+	int get_block_number();
+	void print(ostream& file_buffer);
+	Eval_Result & evaluate(Local_Environment& eval_env, ostream& file_buffer);
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+class If_Else_Stmt_Ast:public Ast
+{
+	Ast * condition;
+	Ast * true_goto;
+	Ast * false_goto;
+public:
+	If_Else_Stmt_Ast(Ast * condition_temp, Ast * true_goto_temp, Ast * false_goto_temp, int line);
+	~If_Else_Stmt_Ast();
 
 	void print(ostream & file_buffer);
 

@@ -60,18 +60,20 @@ int Basic_Block::get_bb_number()
 }
 void Basic_Block::print_bb(ostream & file_buffer)
 {
-	file_buffer << BB_SPACE << "Basic_Block " << id_number << "\n";
+	file_buffer << endl<<BB_SPACE << "Basic_Block " << id_number << "\n";
 
 	list<Ast *>::iterator i;
 	for(i = statement_list.begin(); i != statement_list.end(); i++)
 		(*i)->print(file_buffer);
+
+	CHECK_INVARIANT((successor), "Atleast one of true, false, direct successor should be set");
 }
 
 Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file_buffer)
 {
 	Eval_Result * result = NULL;
 
-	file_buffer << "\n" << BB_SPACE << "Basic Block: " << id_number << "\n";
+	file_buffer << "\n" << BB_SPACE << "Basic Block: " << id_number ;
 
 	list <Ast *>::iterator i;
 	for (i = statement_list.begin(); i != statement_list.end(); i++)
@@ -79,6 +81,7 @@ Eval_Result & Basic_Block::evaluate(Local_Environment & eval_env, ostream & file
 		CHECK_INVARIANT(((*i) != NULL), "Ast pointer seems to be NULL into the basic block");
 		result = &((*i)->evaluate(eval_env, file_buffer)); 
 	}
+	CHECK_INVARIANT((successor), "Atleast one of true, false, direct successor should be set");
 
 	return *result;
 }
@@ -132,4 +135,11 @@ void Basic_Block::print_icode(ostream & file_buffer)
 	list<Icode_Stmt *>::iterator i;
 	for (i = bb_icode_list.begin(); i != bb_icode_list.end(); i++)
 		(*i)->print_icode(file_buffer);
+}
+
+void Basic_Block::set_successor(bool successor){
+	this->successor = successor;
+}
+bool Basic_Block::get_successor(){
+	return successor;
 }
