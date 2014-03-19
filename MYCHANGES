@@ -1,0 +1,21 @@
+Mayank Meghwanshi 110050012
+Vivek Agarwal 110050042
+
+In file scanner.ll:
+	1. Added tokens for if, else, goto and relational operators. (LT, LE, GT, GE, EQ, NE).
+
+In file parser.yy:
+	1. Added grammer rules for if expression, goto expression and relational expressions.
+
+In file ast.cc, ast.hh:
+	1. Added classes for if_stmt, relational_stmt and goto_stmt.
+	2. Added corresponding compile function for printing of Intermediate Code.
+
+In file basic-blocl.cc, .hh:
+	1. Added functionality in compile function to also print label of basic-block for icode reference.
+
+In file icode.cc, .hh:
+	1. Added functionality for Compute_IC_Stmt and Control_Flow_IC_Stmt, Label_IC_Stmt for generating intermediate code for if-else and goto, relational expressions and label tag.
+
+In file reg-alloc.cc:
+	1. Added instruction related to relational expressions, branch expressions and label in instruction array.
