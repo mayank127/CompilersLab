@@ -97,6 +97,7 @@ class Register_Descriptor
     void reset_use_for_expr_result();
 
     bool is_free();
+    bool is_unique();
 };
 
 ////////////////////////////// Lra_Outcome ///////////////////////////////////////

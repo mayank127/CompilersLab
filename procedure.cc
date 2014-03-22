@@ -88,7 +88,7 @@ void Procedure::print(ostream & file_buffer)
 {
 	CHECK_INVARIANT((return_type == void_data_type), "Only void return type of funtion is allowed");
 
-	file_buffer << PROC_SPACE << "Procedure: main, Return Type: void\n";
+	file_buffer << PROC_SPACE << "Procedure: "<< name << ", Return Type: void\n";
 
 	if ((command_options.is_show_symtab_selected()) || (command_options.is_show_program_selected()))
 	{
@@ -240,8 +240,9 @@ void Procedure::print_prologue(ostream & file_buffer)
 	sub $fp, $sp, 4\t\t# Update the frame pointer\n";
 
 	int size = local_symbol_table.get_size();
+	size = -size;
 	if (size > 0)
-		prologue << "\n\tsub $sp, $sp, " << size << "\t\t# Make space for the locals\n";
+		prologue << "\n\tsub $sp, $sp, " << (size + 4) << "\t\t# Make space for the locals\n";
 	else
 		prologue << "\n\tsub $sp, $sp, 4\t\t#Make space for the locals\n";
 
@@ -255,9 +256,9 @@ void Procedure::print_epilogue(ostream & file_buffer)
 	stringstream epilogue;
 
 	int size = local_symbol_table.get_size();
-
+	size = -size;
 	if (size > 0)
-		epilogue << "\n# Epilogue Begins\n\tadd $sp, $sp, " << size << "\n";
+		epilogue << "\n# Epilogue Begins\n\tadd $sp, $sp, " << (size + 4) << "\n";
 	else
 		epilogue << "\n#Epilogue Begins\n\tadd $sp, $sp, 4\n";
 

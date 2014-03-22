@@ -98,6 +98,10 @@ void Register_Descriptor::update_symbol_information(Symbol_Table_Entry & sym_ent
 		lra_symbol_list.push_back(&sym_entry);
 }
 
+bool Register_Descriptor::is_unique(){
+	return (lra_symbol_list.size()<=1);
+}
+
 //////////////////////////////// Lra_Outcome //////////////////////////////////////////
 
 Lra_Outcome::Lra_Outcome(Register_Descriptor * rdp, bool nr, bool sr, bool dr, bool mv, bool ld)
@@ -144,6 +148,9 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 	register_move_needed = false;
 	load_needed = false;
 
+	source_symbol_entry = NULL;
+	destination_symbol_entry = NULL;
+
 	switch (lcase)
 	{
 	case mc_2m:
@@ -152,15 +159,17 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 		CHECK_INVARIANT(source_memory, 
 			"Sourse ast pointer cannot be NULL for m2m scenario in lra");
 
-		if (typeid(*destination_memory) == typeid(Number_Ast<int>))
+		if (typeid(*destination_memory) == typeid(Number_Ast<int>) || typeid(*destination_memory) == typeid(Relational_Expr_Ast))
 			destination_register = NULL;
 		else
 		{
 			destination_symbol_entry = &(destination_memory->get_symbol_entry());
-			destination_register = destination_symbol_entry->get_register(); 
+			destination_register = destination_symbol_entry->get_register();
+			if(destination_register && !destination_register->is_unique())
+				destination_register = NULL;
 		}
 
-		if (typeid(*source_memory) == typeid(Number_Ast<int>))
+		if (typeid(*source_memory) == typeid(Number_Ast<int>) || typeid(*source_memory) == typeid(Relational_Expr_Ast))
 			source_register = NULL;
 		else
 		{
@@ -192,8 +201,13 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 	case mc_2r:
 		CHECK_INVARIANT(source_memory, "Sourse ast pointer cannot be NULL for m2r scenario in lra");
 
-		source_symbol_entry = &(source_memory->get_symbol_entry());
-		source_register = source_symbol_entry->get_register(); 
+		if (typeid(*source_memory) == typeid(Number_Ast<int>) || typeid(*source_memory) == typeid(Relational_Expr_Ast))
+			source_register = NULL;
+		else
+		{
+			source_symbol_entry = &(source_memory->get_symbol_entry());
+			source_register = source_symbol_entry->get_register(); 
+		}
 
 		if (source_register != NULL)
 		{
@@ -232,10 +246,12 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 	CHECK_INVARIANT ((result_register != NULL), "Inconsistent information in lra");
 	register_description = result_register;
 
-	if (destination_register)
-		destination_symbol_entry->free_register(destination_register); 
+	if(destination_symbol_entry){
+		if (destination_register)
+			destination_symbol_entry->free_register(destination_register); 
 
-	destination_symbol_entry->update_register(result_register);
+		destination_symbol_entry->update_register(result_register);
+	}
 }
 
 /******************************* Machine Description *****************************************/
@@ -286,7 +302,7 @@ void Machine_Description::initialize_instruction_table()
 	spim_instruction_table[seq] = new Instruction_Descriptor(seq, "seq", "seq", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[sne] = new Instruction_Descriptor(sne, "sne", "sne", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[bne] = new Instruction_Descriptor(bne, "bne", "bne", "", i_o1_o2_op_label, a_o1_o2_op_label);
-	spim_instruction_table[goto_label] = new Instruction_Descriptor(goto_label, "goto", "goto", "", i_op_o1, a_op_o1);
+	spim_instruction_table[goto_label] = new Instruction_Descriptor(goto_label, "goto", "j", "", i_op_o1, a_op_o1);
 	spim_instruction_table[label] = new Instruction_Descriptor(label, "label", "label", "", i_op_o1, a_op_o1);
 
 }
@@ -335,6 +351,15 @@ Register_Descriptor * Machine_Description::get_new_register()
 			return reg_desc;
 	}
 
+	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
+	{
+		reg_desc = i->second;
+
+		if ((reg_desc->get_use_category() == gp_data) && !reg_desc->used_for_expr_result){
+			reg_desc->clear_lra_symbol_list();
+			return reg_desc;
+		}
+	}
 	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
 			"Error in get_new_reg or register requirements of input program cannot be met");
 }
