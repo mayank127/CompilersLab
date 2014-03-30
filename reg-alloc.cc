@@ -102,6 +102,10 @@ bool Register_Descriptor::is_unique(){
 	return (lra_symbol_list.size()<=1);
 }
 
+Register_Val_Type Register_Descriptor::get_register_type(){
+	return value_type;
+}
+
 //////////////////////////////// Lra_Outcome //////////////////////////////////////////
 
 Lra_Outcome::Lra_Outcome(Register_Descriptor * rdp, bool nr, bool sr, bool dr, bool mv, bool ld)
@@ -287,6 +291,14 @@ void Machine_Description::initialize_register_table()
 	spim_register_table[sp] = new Register_Descriptor(sp, "sp", int_num, pointer);
 	spim_register_table[fp] = new Register_Descriptor(fp, "fp", int_num, pointer);
 	spim_register_table[ra] = new Register_Descriptor(ra, "ra", int_num, ret_address);
+
+	spim_register_table[f2] = new Register_Descriptor(f2, "f2", float_num, gp_data);
+	spim_register_table[f4] = new Register_Descriptor(f4, "f4", float_num, gp_data);
+	spim_register_table[f6] = new Register_Descriptor(f6, "f6", float_num, gp_data);
+	spim_register_table[f8] = new Register_Descriptor(f8, "f8", float_num, gp_data);
+	spim_register_table[f10] = new Register_Descriptor(f10, "f10", float_num, gp_data);
+	spim_register_table[f12] = new Register_Descriptor(f12, "f12", float_num, gp_data);
+	
 }
 
 void Machine_Description::initialize_instruction_table()
@@ -301,6 +313,13 @@ void Machine_Description::initialize_instruction_table()
 	spim_instruction_table[sle] = new Instruction_Descriptor(sle, "sle", "sle", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[seq] = new Instruction_Descriptor(seq, "seq", "seq", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[sne] = new Instruction_Descriptor(sne, "sne", "sne", "", i_r_o1_op_o2, a_op_r_o1_o2);
+	spim_instruction_table[add] = new Instruction_Descriptor(add, "add", "add", "", i_r_o1_op_o2, a_op_r_o1_o2);
+	spim_instruction_table[mul] = new Instruction_Descriptor(mul, "mul", "mul", "", i_r_o1_op_o2, a_op_r_o1_o2);
+	spim_instruction_table[sub] = new Instruction_Descriptor(sub, "sub", "sub", "", i_r_o1_op_o2, a_op_r_o1_o2);
+	spim_instruction_table[divm] = new Instruction_Descriptor(divm, "div", "div", "", i_r_o1_op_o2, a_op_r_o1_o2);
+	spim_instruction_table[uminus] = new Instruction_Descriptor(uminus, "uminus", "uminus", "", i_r_op_o1, a_op_r_o1);
+	spim_instruction_table[mtc1] = new Instruction_Descriptor(mtc1, "mtc1", "mtc1", "", i_r_op_o1, a_op_r_o1);
+	spim_instruction_table[mfc1] = new Instruction_Descriptor(mfc1, "mfc1", "mfc1", "", i_r_op_o1, a_op_r_o1);
 	spim_instruction_table[bne] = new Instruction_Descriptor(bne, "bne", "bne", "", i_o1_o2_op_label, a_o1_o2_op_label);
 	spim_instruction_table[goto_label] = new Instruction_Descriptor(goto_label, "goto", "j", "", i_op_o1, a_op_o1);
 	spim_instruction_table[label] = new Instruction_Descriptor(label, "label", "label", "", i_op_o1, a_op_o1);
@@ -366,4 +385,18 @@ Register_Descriptor * Machine_Description::get_new_register()
 	}
 	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
 			"Error in get_new_reg or register requirements of input program cannot be met");
+}
+
+Register_Descriptor * Machine_Description::get_new_float_register()
+{
+	Register_Descriptor * reg_desc;
+
+	map<Spim_Register, Register_Descriptor *>::iterator i;
+	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
+	{
+		reg_desc = i->second;
+
+		if (reg_desc->is_free() && reg_desc->get_register_type() == float_num)
+			return reg_desc;
+	}
 }

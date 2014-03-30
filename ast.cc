@@ -24,6 +24,7 @@
 #include<iostream>
 #include<fstream>
 #include<typeinfo>
+#include<iomanip>
 
 using namespace std;
 
@@ -153,7 +154,6 @@ Eval_Result & Assignment_Ast::evaluate(Local_Environment & eval_env, ostream & f
 {
 	CHECK_INVARIANT((rhs != NULL), "Rhs of Assignment_Ast cannot be null");
 	Eval_Result & result = rhs->evaluate(eval_env, file_buffer);
-
 	CHECK_INPUT_AND_ABORT(result.is_variable_defined(), "Variable should be defined to be on rhs of Assignment_Ast", lineno);
 
 	CHECK_INVARIANT((lhs != NULL), "Lhs of Assignment_Ast cannot be null");
@@ -292,19 +292,30 @@ void Name_Ast::print_value(Local_Environment & eval_env, ostream & file_buffer)
 
 	else if (eval_env.is_variable_defined(variable_name) && loc_var_val != NULL)
 	{
-		CHECK_INVARIANT(loc_var_val->get_result_enum() == int_result, "Result type can only be int");
-		file_buffer << loc_var_val->get_int_value() << "\n";
+		if(loc_var_val->get_result_enum() == int_result){
+			file_buffer << loc_var_val->get_int_value() << "\n";
+		}
+		else if(loc_var_val->get_result_enum() == float_result){
+			file_buffer << loc_var_val->get_float_value() << "\n";
+		}
+		else{
+			CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Result type can only be int/float");
+		}
 	}
 
 	else
 	{
-		CHECK_INVARIANT(glob_var_val->get_result_enum() == int_result, 
-			"Result type can only be int and float");
-
 		if (glob_var_val == NULL)
 			file_buffer << "0\n";
-		else
+		else if(glob_var_val->get_result_enum() == int_result){
 			file_buffer << glob_var_val->get_int_value() << "\n";
+		}
+		else if(glob_var_val->get_result_enum() == float_result){
+			file_buffer << glob_var_val->get_float_value() << "\n";
+		}
+		else{
+			CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Result type can only be int and float");
+		}
 	}
 	file_buffer << "\n";
 }
@@ -336,11 +347,15 @@ void Name_Ast::set_value_of_evaluation(Local_Environment & eval_env, Eval_Result
 
 	if (variable_symbol_entry->get_data_type() == int_data_type)
 		i = new Eval_Result_Value_Int();
+	else if (variable_symbol_entry->get_data_type() == float_data_type)
+		i = new Eval_Result_Value_Float();
 	else
 		CHECK_INPUT_AND_ABORT(CONTROL_SHOULD_NOT_REACH, "Type of a name can be int/float only", lineno);
 
 	if (result.get_result_enum() == int_result)
 	 	i->set_value(result.get_int_value());
+	else if (result.get_result_enum() == float_result)
+	 	i->set_value(result.get_float_value());
 	else
 		CHECK_INPUT_AND_ABORT(CONTROL_SHOULD_NOT_REACH, "Type of a name can be int/float only", lineno);
 
@@ -358,7 +373,11 @@ Eval_Result & Name_Ast::evaluate(Local_Environment & eval_env, ostream & file_bu
 Code_For_Ast & Name_Ast::compile()
 {
 	Ics_Opd * opd = new Mem_Addr_Opd(*variable_symbol_entry);
-	Register_Descriptor * result_register = machine_dscr_object.get_new_register();
+	Register_Descriptor * result_register;
+	if(variable_symbol_entry->get_data_type() == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
 	Ics_Opd * register_opd = new Register_Addr_Opd(result_register);
 
 	Icode_Stmt * load_stmt = new Move_IC_Stmt(load, opd, register_opd);
@@ -445,7 +464,7 @@ void Number_Ast<DATA_TYPE>::print(ostream & file_buffer)
 	file_buffer << std::fixed;
 	file_buffer << std::setprecision(2);
 
-	file_buffer << "Num : " << constant;
+	file_buffer << "Num : " << std::setprecision(2) << std::fixed << constant;
 }
 
 template <class DATA_TYPE>
@@ -458,15 +477,28 @@ Eval_Result & Number_Ast<DATA_TYPE>::evaluate(Local_Environment & eval_env, ostr
 
 		return result;
 	}
+	else if (node_data_type == float_data_type)
+	{
+		Eval_Result & result = *new Eval_Result_Value_Float();
+		result.set_value(constant);
+
+		return result;
+	}
 }
 
 template <class DATA_TYPE>
 Code_For_Ast & Number_Ast<DATA_TYPE>::compile()
 {
-	Register_Descriptor * result_register = machine_dscr_object.get_new_register();
+	Register_Descriptor * result_register;
+	if(typeid(constant) == typeid(int)){
+		result_register = machine_dscr_object.get_new_register();
+	}
+	else if(typeid(constant) == typeid(float)){
+		result_register = machine_dscr_object.get_new_float_register();
+	}
 	CHECK_INVARIANT((result_register != NULL), "Result register cannot be null");
 	Ics_Opd * load_register = new Register_Addr_Opd(result_register);
-	Ics_Opd * opd = new Const_Opd<int>(constant);
+	Ics_Opd * opd = new Const_Opd<DATA_TYPE>(constant);
 
 	Icode_Stmt * load_stmt = new Move_IC_Stmt(imm_load, opd, load_register);
 
@@ -533,6 +565,7 @@ Code_For_Ast & Return_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
 }
 
 template class Number_Ast<int>;
+template class Number_Ast<float>;
 
 
 /////////////////////////////////////////////////////////////////
@@ -559,12 +592,12 @@ bool Relational_Expr_Ast::check_ast()
 
 	if (lhs->get_data_type() == rhs->get_data_type())
 	{
-		node_data_type = lhs->get_data_type();
+		node_data_type = int_data_type;
 		return true;
 	}
 
 	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
-		"Assignment statement data type not compatible");
+		"Relational statement data type not compatible");
 }
 
 void Relational_Expr_Ast::print(ostream & file_buffer){
@@ -593,24 +626,40 @@ Eval_Result & Relational_Expr_Ast::evaluate(Local_Environment& eval_env, ostream
 	Eval_Result & resultRight = rhs->evaluate(eval_env, file_buffer);
 	CHECK_INPUT_AND_ABORT(resultRight.is_variable_defined(), "Variable should be defined to be on rhs of Relational_Expr_Ast", lineno);
 
+	float left;
+	float right;
+	if(resultLeft.get_result_enum()==int_result){
+		left = resultLeft.get_int_value();
+	}
+	else if(resultLeft.get_result_enum()==float_result){
+		left = resultLeft.get_float_value();
+	}
+
+	if(resultRight.get_result_enum()==int_result){
+		right = resultRight.get_int_value();
+	}
+	else if(resultRight.get_result_enum()==float_result){
+		right = resultRight.get_float_value();
+	}
+
 	switch(op) {
 		case LE:
-			result.set_value(resultLeft.get_int_value() <= resultRight.get_int_value());
+			result.set_value(left <= right);
 			break;
 		case LT:
-			result.set_value(resultLeft.get_int_value() < resultRight.get_int_value());
+			result.set_value(left < right);
 			break;
 		case GT:
-			result.set_value(resultLeft.get_int_value() > resultRight.get_int_value());
+			result.set_value(left > right);
 			break;
 		case GE:
-			result.set_value(resultLeft.get_int_value() >= resultRight.get_int_value());
+			result.set_value(left >= right);
 			break;
 		case EQ:
-			result.set_value(resultLeft.get_int_value() == resultRight.get_int_value());
+			result.set_value(left == right);
 			break;
 		case NE:
-			result.set_value(resultLeft.get_int_value() != resultRight.get_int_value());
+			result.set_value(left != right);
 			break;
 	}
 	return result;
@@ -897,3 +946,690 @@ Code_For_Ast & If_Else_Stmt_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
 	return * cond_goto_stmt_code;
 }
 /////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Plus_Ast::Plus_Ast(Ast * temp_lhs, Ast * temp_rhs, int line)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	lineno = line;
+}
+
+Plus_Ast::~Plus_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Plus_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Plus_Ast::check_ast()
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Plus_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Plus_Ast cannot be null");
+
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Plus statement data type not compatible");
+}
+
+void Plus_Ast::print(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: PLUS\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "   RHS (";
+	rhs->print(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Plus_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Plus_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Plus_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of Plus_Ast", lineno);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(rresult.is_variable_defined(), "Variable should be defined to be on lhs of Plus_Ast", lineno);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_float_value() + rresult.get_float_value());
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_int_value() + rresult.get_int_value());
+	}
+	return *result;
+}
+
+Code_For_Ast & Plus_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+	CHECK_INVARIANT((rhs != NULL), "Rhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Code_For_Ast & load_rhs_stmt = rhs->compile();
+	Register_Descriptor * rhs_register = load_rhs_stmt.get_reg();
+	rhs_register->used_for_expr_result = true;
+
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+	Ics_Opd * op2 = new Register_Addr_Opd(rhs_register);
+
+	Icode_Stmt * stmt;
+	stmt = new Compute_IC_Stmt(add, op1, op2, result);
+
+	lhs_register->used_for_expr_result = false;
+	rhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+
+	if (load_rhs_stmt.get_icode_list().empty() == false)
+		ic_list.splice(ic_list.end(), load_rhs_stmt.get_icode_list());
+
+	ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & Plus_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Minus
+Minus_Ast::Minus_Ast(Ast * temp_lhs, Ast * temp_rhs, int line)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	lineno = line;
+}
+
+Minus_Ast::~Minus_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Minus_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Minus_Ast::check_ast()
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Minus_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Minus_Ast cannot be null");
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Minus statement data type not compatible");
+}
+
+void Minus_Ast::print(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: MINUS\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "   RHS (";
+	rhs->print(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Minus_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Minus_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Minus_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of Minus_Ast", lineno);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(rresult.is_variable_defined(), "Variable should be defined to be on lhs of Minus_Ast", lineno);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_float_value() - rresult.get_float_value());
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_int_value() - rresult.get_int_value());
+	}
+	return *result;
+}
+Code_For_Ast & Minus_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+	CHECK_INVARIANT((rhs != NULL), "Rhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Code_For_Ast & load_rhs_stmt = rhs->compile();
+	Register_Descriptor * rhs_register = load_rhs_stmt.get_reg();
+	rhs_register->used_for_expr_result = true;
+
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+	Ics_Opd * op2 = new Register_Addr_Opd(rhs_register);
+
+	Icode_Stmt * stmt;
+	stmt = new Compute_IC_Stmt(sub, op1, op2, result);
+
+	lhs_register->used_for_expr_result = false;
+	rhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+
+	if (load_rhs_stmt.get_icode_list().empty() == false)
+		ic_list.splice(ic_list.end(), load_rhs_stmt.get_icode_list());
+
+	ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & Minus_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Division
+Division_Ast::Division_Ast(Ast * temp_lhs, Ast * temp_rhs, int line)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	lineno = line;
+}
+
+Division_Ast::~Division_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Division_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Division_Ast::check_ast()
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Division_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Division_Ast cannot be null");
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Division statement data type not compatible");
+}
+
+void Division_Ast::print(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: DIV\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "   RHS (";
+	rhs->print(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Division_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Division_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Division_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of Division_Ast", lineno);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(rresult.is_variable_defined(), "Variable should be defined to be on lhs of Division_Ast", lineno);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_float_value() / rresult.get_float_value());
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_int_value() / rresult.get_int_value());
+	}
+	return *result;
+}
+Code_For_Ast & Division_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+	CHECK_INVARIANT((rhs != NULL), "Rhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Code_For_Ast & load_rhs_stmt = rhs->compile();
+	Register_Descriptor * rhs_register = load_rhs_stmt.get_reg();
+	rhs_register->used_for_expr_result = true;
+
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+	Ics_Opd * op2 = new Register_Addr_Opd(rhs_register);
+
+	Icode_Stmt * stmt;
+	stmt = new Compute_IC_Stmt(divm, op1, op2, result);
+
+	lhs_register->used_for_expr_result = false;
+	rhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+
+	if (load_rhs_stmt.get_icode_list().empty() == false)
+		ic_list.splice(ic_list.end(), load_rhs_stmt.get_icode_list());
+
+	ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & Division_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//multiplpy
+
+Multiplication_Ast::Multiplication_Ast(Ast * temp_lhs, Ast * temp_rhs, int line)
+{
+	lhs = temp_lhs;
+	rhs = temp_rhs;
+	lineno = line;
+}
+
+Multiplication_Ast::~Multiplication_Ast()
+{
+	delete lhs;
+	delete rhs;
+}
+
+Data_Type Multiplication_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Multiplication_Ast::check_ast()
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Multiplication_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Multiplication_Ast cannot be null");
+	if (lhs->get_data_type() == rhs->get_data_type())
+	{
+		node_data_type = lhs->get_data_type();
+		return true;
+	}
+
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, "Multiplication statement data type not compatible");
+}
+
+void Multiplication_Ast::print(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: MULT\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print(file_buffer);
+	file_buffer << ")\n";
+
+	file_buffer << AST_NODE_SPACE << "   RHS (";
+	rhs->print(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Multiplication_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((rhs != NULL), "Rhs of Multiplication_Ast cannot be null");
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Multiplication_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of Multiplication_Ast", lineno);
+	Eval_Result & rresult = rhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(rresult.is_variable_defined(), "Variable should be defined to be on lhs of Multiplication_Ast", lineno);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(lresult.get_float_value() * rresult.get_float_value());
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(lresult.get_int_value() * rresult.get_int_value());
+	}
+	return *result;
+}
+
+Code_For_Ast & Multiplication_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+	CHECK_INVARIANT((rhs != NULL), "Rhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Code_For_Ast & load_rhs_stmt = rhs->compile();
+	Register_Descriptor * rhs_register = load_rhs_stmt.get_reg();
+	rhs_register->used_for_expr_result = true;
+
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+	Ics_Opd * op2 = new Register_Addr_Opd(rhs_register);
+
+	Icode_Stmt * stmt;
+	stmt = new Compute_IC_Stmt(mul, op1, op2, result);
+
+	lhs_register->used_for_expr_result = false;
+	rhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+
+	if (load_rhs_stmt.get_icode_list().empty() == false)
+		ic_list.splice(ic_list.end(), load_rhs_stmt.get_icode_list());
+
+	ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & Multiplication_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Unary
+
+Unary_Ast::Unary_Ast(Ast * temp_lhs, int line)
+{
+	lhs = temp_lhs;
+	lineno = line;
+}
+
+Unary_Ast::~Unary_Ast()
+{
+	delete lhs;
+}
+
+Data_Type Unary_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+bool Unary_Ast::check_ast()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Unary_Ast cannot be null");
+	node_data_type = lhs->get_data_type();
+	return true;
+}
+
+void Unary_Ast::print(ostream & file_buffer)
+{
+	file_buffer  <<endl<<AST_SPACE << "   Arith: UMINUS\n";
+
+	file_buffer << AST_NODE_SPACE<<"   LHS (";
+	lhs->print(file_buffer);
+	file_buffer << ")";
+}
+
+Eval_Result & Unary_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs of Unary_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of Unary_Ast", lineno);
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+	 	result->set_value(-1*lresult.get_float_value());
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	result->set_value(-1 * lresult.get_int_value());
+	}
+	return *result;
+}
+
+Code_For_Ast & Unary_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+
+	Icode_Stmt * stmt;
+	stmt = new Compute_IC_Stmt(uminus, op1, NULL, result);
+
+	lhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+
+	ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & Unary_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+TypeCast_Ast::TypeCast_Ast(Ast * temp_lhs, Data_Type temp_data_type, int line)
+{
+	lhs = temp_lhs;
+	node_data_type = temp_data_type;
+	lineno = line;
+}
+
+TypeCast_Ast::~TypeCast_Ast()
+{
+	delete lhs;
+}
+
+Data_Type TypeCast_Ast::get_data_type()
+{
+	return node_data_type;
+}
+
+void TypeCast_Ast::print(ostream & file_buffer)
+{
+	lhs->print(file_buffer);
+}
+
+Eval_Result & TypeCast_Ast::evaluate(Local_Environment & eval_env, ostream & file_buffer)
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs of TypeCast_Ast cannot be null");
+
+	Eval_Result & lresult = lhs->evaluate(eval_env, file_buffer);
+	CHECK_INPUT_AND_ABORT(lresult.is_variable_defined(), "Variable should be defined to be on lhs of TypeCast_Ast", lineno);
+
+
+	Eval_Result_Value * result;
+	if (node_data_type == float_data_type){
+		result = new Eval_Result_Value_Float();
+		if(lresult.get_result_enum() == int_result){
+			result->set_value((float)lresult.get_int_value());
+		}
+		else{
+			result->set_value(lresult.get_float_value());
+		}
+	}
+	else{
+		result = new Eval_Result_Value_Int();
+	 	if(lresult.get_result_enum() == float_result){
+			result->set_value((int)lresult.get_float_value());
+		}
+		else{
+			result->set_value(lresult.get_int_value());
+		}
+	}
+	return *result;
+}
+Code_For_Ast & TypeCast_Ast::compile()
+{
+	CHECK_INVARIANT((lhs != NULL), "Lhs cannot be null");
+
+	Code_For_Ast & load_lhs_stmt = lhs->compile();
+	Register_Descriptor * lhs_register = load_lhs_stmt.get_reg();
+	lhs_register->used_for_expr_result = true;
+
+	Register_Descriptor * result_register;
+	if(node_data_type == int_data_type)
+		result_register = machine_dscr_object.get_new_register();
+	else
+		result_register = machine_dscr_object.get_new_float_register();
+	result_register->used_for_expr_result = true;
+	Ics_Opd * result = new Register_Addr_Opd(result_register);
+	Ics_Opd * op1 = new Register_Addr_Opd(lhs_register);
+
+	Icode_Stmt * stmt;
+	if(node_data_type == int_data_type && lhs->get_data_type() == float_data_type)
+		stmt = new Compute_IC_Stmt(mfc1, op1, NULL, result);
+	else if(node_data_type == float_data_type && lhs->get_data_type() == int_data_type)
+		stmt = new Compute_IC_Stmt(mtc1, op1, NULL, result);
+	else 
+		stmt = NULL;
+
+	lhs_register->used_for_expr_result = false;
+	result_register->used_for_expr_result = false;
+	list<Icode_Stmt *> & ic_list = *new list<Icode_Stmt *>;
+
+	if (load_lhs_stmt.get_icode_list().empty() == false)
+		ic_list = load_lhs_stmt.get_icode_list();
+	if(stmt != NULL)
+		ic_list.push_back(stmt);
+
+	Code_For_Ast * rel_expr_stmt;
+	if (ic_list.empty() == false)
+		if(stmt != NULL)
+			rel_expr_stmt = new Code_For_Ast(ic_list, result_register);
+		else
+			rel_expr_stmt = new Code_For_Ast(ic_list, lhs_register);
+
+	return *rel_expr_stmt;
+}
+
+Code_For_Ast & TypeCast_Ast::compile_and_optimize_ast(Lra_Outcome & lra)
+{
+	Code_For_Ast * cond_goto_stmt_code;
+	return * cond_goto_stmt_code;
+}

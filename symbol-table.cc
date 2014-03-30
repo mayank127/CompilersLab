@@ -125,6 +125,17 @@ void Symbol_Table::create(Local_Environment & local_global_variables_table)
 
 			local_global_variables_table.put_variable_value(*j, name);
 		}
+		else if ((*i)->get_data_type() == float_data_type)
+		{
+			Eval_Result * j = new Eval_Result_Value_Float();
+			if (scope == global)
+			{
+				j->set_variable_status(true);
+				j->set_value((float)0.0);
+			}
+
+			local_global_variables_table.put_variable_value(*j, name);
+		}
 	}
 }
 

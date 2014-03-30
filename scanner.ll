@@ -47,6 +47,14 @@ goto	{
 			store_token_name("GOTO");
 			return Parser::GOTO;
 		}
+float	{
+			store_token_name("FLOAT");
+			return Parser::FLOAT;
+		}
+double	{
+			store_token_name("DOUBLE");
+			return Parser::DOUBLE;
+		}
 \<=		{
 			store_token_name("LE");
 			ParserBase::STYPE__ * val = getSval();
@@ -88,7 +96,18 @@ goto	{
 			return Parser::ASSIGN_OP;
 		}
 
+[-*+/]	{
+			store_token_name("ARITHOP");
+			return matched()[0];
+		}
+[-]?[[:digit:]]+[.][[:digit:]]+	{
+				store_token_name("FNUM");
 
+				ParserBase::STYPE__ * val = getSval();
+				val->float_value = atof(matched().c_str());
+
+				return Parser::FNUM;
+			}
 [-]?[[:digit:]]+ 	{ 
 				store_token_name("NUM");
 

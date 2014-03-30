@@ -76,6 +76,12 @@ typedef enum
 	constant_addr
 } Opd_Category;  
 
+typedef enum
+{
+	int_opd,
+	float_opd
+} Opd_Type;
+
 typedef enum 
 { 
 	load, 
@@ -88,6 +94,13 @@ typedef enum
 	seq,
 	sne,
 	bne,
+	add,
+	sub,
+	divm,
+	mul,
+	uminus,
+	mtc1,
+	mfc1,
 	goto_label,
 	label,
 	nop 
@@ -140,6 +153,7 @@ public:
 	Opd_Category get_opd_category(); 
 	virtual Register_Descriptor * get_reg();
 	virtual Symbol_Table_Entry & get_symbol_entry();
+	virtual Opd_Type get_opd_type();
 
 	/* Operands are printed differently in icode and assembly code */
 
@@ -153,8 +167,10 @@ class Mem_Addr_Opd:public Ics_Opd
 
 public:
 	Mem_Addr_Opd(Symbol_Table_Entry & se);
+	Symbol_Table_Entry & get_symbol_entry();
 	~Mem_Addr_Opd() {}
 
+	Opd_Type get_opd_type();
 	void print_ics_opd(ostream & file_buffer);
 	void print_asm_opd(ostream & file_buffer);
 
@@ -169,6 +185,7 @@ public:
 	Register_Addr_Opd(Register_Descriptor * rd);
 	~Register_Addr_Opd() {}
 
+	Opd_Type get_opd_type();
 	Register_Descriptor * get_reg();
 	void print_ics_opd(ostream & file_buffer);
 	void print_asm_opd(ostream & file_buffer);
@@ -185,6 +202,7 @@ public:
 	Const_Opd (T num);
 	~Const_Opd() {}
 
+	Opd_Type get_opd_type();
 	void print_ics_opd(ostream & file_buffer);
 	void print_asm_opd(ostream & file_buffer);
 

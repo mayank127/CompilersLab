@@ -29,6 +29,7 @@
 %union 
 {
 	int integer_value;
+	float float_value;
 	std::string * string_value;
 	pair<Data_Type, string> * decl;
 	list<Ast *> * ast_list;
@@ -42,11 +43,15 @@
 };
 
 %token <integer_value> INTEGER_NUMBER BBNUM
+%token <float_value> FNUM
 %token <string_value> NAME
-%token RETURN INTEGER IF ELSE GOTO ASSIGN_OP
+%token RETURN INTEGER FLOAT DOUBLE IF ELSE GOTO ASSIGN_OP
 
 %left <relation_op> NE EQ
 %left <relation_op> LT LE GT GE
+
+%left '+' '-'
+%left '/' '*'
 
 %type <symbol_table> optional_variable_declaration_list
 %type <symbol_table> variable_declaration_list
@@ -57,6 +62,9 @@
 %type <ast_list> executable_statement_list
 %type <ast_list> assignment_statement_list
 %type <ast> assignment_statement
+%type <ast> basic_expression
+%type <ast> atomic_expression
+%type <ast> arithmetic_expression
 %type <ast> if_statement
 %type <ast> goto_statement
 %type <ast> expression
@@ -252,6 +260,36 @@ declaration:
 
 		string name = *$2;
 		Data_Type type = int_data_type;
+
+		pair<Data_Type, string> * declar = new pair<Data_Type, string>(type, name);
+
+		$$ = declar;
+	}
+	}
+|
+	FLOAT NAME
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		CHECK_INVARIANT(($2 != NULL), "Name cannot be null");
+
+		string name = *$2;
+		Data_Type type = float_data_type;
+
+		pair<Data_Type, string> * declar = new pair<Data_Type, string>(type, name);
+
+		$$ = declar;
+	}
+	}
+|
+	DOUBLE NAME
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		CHECK_INVARIANT(($2 != NULL), "Name cannot be null");
+
+		string name = *$2;
+		Data_Type type = float_data_type;
 
 		pair<Data_Type, string> * declar = new pair<Data_Type, string>(type, name);
 
@@ -510,7 +548,7 @@ conditional_expression:
 	}
 ;
 
-expression:
+atomic_expression:
 	constant
 	{
 	if (NOT_ONLY_PARSE)
@@ -527,6 +565,68 @@ expression:
 	}
 	}
 |
+	'(' expression ')'
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $2;
+	}
+	}
+;
+
+basic_expression:
+	atomic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $1;
+	}
+	}
+|
+	'-' atomic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Unary_Ast($2, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	'(' FLOAT ')' atomic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$  = new TypeCast_Ast($4, float_data_type, get_line_number());
+	}
+	}
+|
+	'(' INTEGER ')' atomic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$  = new TypeCast_Ast($4, int_data_type, get_line_number());
+	}
+	}
+|
+	'(' DOUBLE ')' atomic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$  = new TypeCast_Ast($4, float_data_type, get_line_number());
+	}
+	}
+
+;
+
+expression:
+	basic_expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = $1;
+	}
+	}
+|
 	conditional_expression
 	{
 	if (NOT_ONLY_PARSE)
@@ -535,13 +635,52 @@ expression:
 	}
 	}
 |
-	'(' expression ')'
+	arithmetic_expression
 	{
 	if (NOT_ONLY_PARSE)
 	{
-		$$ = $2;
+		$$ = $1;
 	}
 	}
+;
+
+arithmetic_expression:
+	expression '+' expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Plus_Ast($1, $3, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression '-' expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Minus_Ast($1, $3, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression '*' expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Multiplication_Ast($1, $3, get_line_number());
+		$$->check_ast();
+	}
+	}
+|
+	expression '/' expression
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		$$ = new Division_Ast($1, $3, get_line_number());
+		$$->check_ast();
+	}
+	}
+
 ;
 
 variable:
@@ -579,6 +718,18 @@ constant:
 		int num = $1;
 
 		Ast * num_ast = new Number_Ast<int>(num, int_data_type, get_line_number());
+
+		$$ = num_ast;
+	}
+	}
+|
+	FNUM
+	{
+	if (NOT_ONLY_PARSE)
+	{
+		float num = $1;
+
+		Ast * num_ast = new Number_Ast<float>(num, float_data_type, get_line_number());
 
 		$$ = num_ast;
 	}

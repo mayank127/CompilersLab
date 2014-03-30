@@ -27,6 +27,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <iomanip>
 
 using namespace std;
 
@@ -58,6 +59,10 @@ Symbol_Table_Entry & Ics_Opd::get_symbol_entry()
 		"The get_Sym_Entry method should not be called for a non-address operand");
 }
 
+Opd_Type Ics_Opd::get_opd_type(){
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH,
+		"The get_Reg method should not be called for a non-reg operand");
+}
 /****************************** Class Mem_Addr_Opd *****************************/
 
 Mem_Addr_Opd::Mem_Addr_Opd(Symbol_Table_Entry & se) 
@@ -72,6 +77,19 @@ Mem_Addr_Opd & Mem_Addr_Opd::operator=(const Mem_Addr_Opd & rhs)
 	symbol_entry = rhs.symbol_entry;
 
 	return *this;
+}
+
+Opd_Type Mem_Addr_Opd::get_opd_type(){
+	if(symbol_entry->get_data_type() == int_data_type){
+		return int_opd;
+	}
+	else if(symbol_entry->get_data_type() == float_data_type){
+		return float_opd;
+	}
+}
+
+Symbol_Table_Entry & Mem_Addr_Opd::get_symbol_entry(){
+	return *symbol_entry;
 }
 
 void Mem_Addr_Opd::print_ics_opd(ostream & file_buffer) 
@@ -109,10 +127,19 @@ Register_Descriptor * Register_Addr_Opd::get_reg()    { return register_descript
 
 Register_Addr_Opd& Register_Addr_Opd::operator=(const Register_Addr_Opd& rhs)
 {
-	type = rhs.type;     
+	type = rhs.type;
 	register_description = rhs.register_description ;
 
 	return *this;
+}
+
+Opd_Type Register_Addr_Opd::get_opd_type(){
+	if(register_description->get_register_type() == int_num){
+		return int_opd;
+	}
+	else if(register_description->get_register_type() == float_num){
+		return float_opd;
+	}
 }
 
 void Register_Addr_Opd::print_ics_opd(ostream & file_buffer) 
@@ -154,15 +181,24 @@ Const_Opd<DATA_TYPE> & Const_Opd<DATA_TYPE>::operator=(const Const_Opd<DATA_TYPE
 template <class DATA_TYPE>
 void Const_Opd<DATA_TYPE>::print_ics_opd(ostream & file_buffer) 
 {
-	file_buffer << num;
+	file_buffer <<std::setprecision(2) << std::fixed<< num;
 }
 
 template <class DATA_TYPE>
 void Const_Opd<DATA_TYPE>::print_asm_opd(ostream & file_buffer) 
 {
-	file_buffer << num;
+	file_buffer <<std::setprecision(2) << std::fixed<< num;
 }
 
+template <class DATA_TYPE>
+Opd_Type Const_Opd<DATA_TYPE>::get_opd_type(){
+	if(typeid(num) == typeid(int)){
+		return int_opd;
+	}
+	else if(typeid(num) == typeid(float)){
+		return float_opd;
+	}
+}
 /****************************** Class Icode_Stmt *****************************/
 
 Instruction_Descriptor & Icode_Stmt::get_op()
@@ -239,7 +275,9 @@ void Move_IC_Stmt::print_icode(ostream & file_buffer)
 	switch (ic_format)
 	{
 	case i_r_op_o1: 
-			file_buffer << " " << operation_name << ":\t";
+			file_buffer << "\t" << operation_name;
+			file_buffer<<(result->get_opd_type() == float_opd ? ".d":"");
+			file_buffer<< ":    \t";
 			result->print_ics_opd(file_buffer);
 			file_buffer << " <- ";
 			opd1->print_ics_opd(file_buffer);
@@ -318,8 +356,6 @@ Compute_IC_Stmt& Compute_IC_Stmt::operator=(const Compute_IC_Stmt& rhs)
 
 void Compute_IC_Stmt::print_icode(ostream & file_buffer)
 {
-	CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a compute IC Stmt");
-	CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a compute IC Stmt");
 	CHECK_INVARIANT (result, "Result cannot be NULL for a compute IC Stmt");
 
 	string operation_name = op_desc.get_name();
@@ -329,7 +365,11 @@ void Compute_IC_Stmt::print_icode(ostream & file_buffer)
 	switch (ic_format)
 	{
 	case i_r_o1_op_o2: 
-			file_buffer << " " << operation_name << ": ";
+			CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a compute IC Stmt");
+			CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a compute IC Stmt");
+			file_buffer << "\t" << operation_name;
+			file_buffer<<(result->get_opd_type() == float_opd ? ".d":"");
+			file_buffer << ":    \t";
 			result->print_ics_opd(file_buffer);
 			file_buffer << " <- ";
 			opd1->print_ics_opd(file_buffer);
@@ -338,6 +378,16 @@ void Compute_IC_Stmt::print_icode(ostream & file_buffer)
 			file_buffer << "\n";
 
 			break; 
+	case i_r_op_o1:
+			CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a compute IC Stmt");
+			file_buffer << "\t" << operation_name;
+			file_buffer<<((result->get_opd_type() == float_opd && op_desc.get_op() != mtc1 ) ? ".d":"");
+			file_buffer << ":    \t";
+			result->print_ics_opd(file_buffer);
+			file_buffer << " <- ";
+			opd1->print_ics_opd(file_buffer);
+			file_buffer << "\n";
+			break;
 
 	default: CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
 				"Intermediate code format not supported");
@@ -348,7 +398,6 @@ void Compute_IC_Stmt::print_icode(ostream & file_buffer)
 void Compute_IC_Stmt::print_assembly(ostream & file_buffer)
 {
 	CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a compute IC Stmt");
-	CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a compute IC Stmt");
 	CHECK_INVARIANT (result, "Result cannot be NULL for a compute IC Stmt");
 
 	string operation_name = op_desc.get_mnemonic();
@@ -358,6 +407,7 @@ void Compute_IC_Stmt::print_assembly(ostream & file_buffer)
 	switch (assem_format)
 	{
 	case a_op_r_o1_o2: 
+			CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a compute IC Stmt");
 			file_buffer << "\t" << operation_name << " ";
 			result->print_asm_opd(file_buffer);
 			file_buffer << ", ";
@@ -367,7 +417,8 @@ void Compute_IC_Stmt::print_assembly(ostream & file_buffer)
 			file_buffer << "\n";
 
 			break; 
-
+	case a_op_r_o1:
+		break;
 	default: CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
 				"Intermediate code format not supported");
 		break;
@@ -417,7 +468,9 @@ void Control_Flow_IC_Stmt::print_icode(ostream & file_buffer)
 	case i_o1_o2_op_label: 
 			CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a Control_Flow IC Stmt");
 			CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a Control_Flow IC Stmt");
-			file_buffer << " " << operation_name << ": ";
+			file_buffer << "\t" << operation_name;
+			file_buffer<<(result->get_opd_type() == float_opd ? ".d":"");
+			file_buffer << ":    \t";
 			opd1->print_ics_opd(file_buffer);
 			file_buffer << " , ";
 			opd2->print_ics_opd(file_buffer);
@@ -427,7 +480,7 @@ void Control_Flow_IC_Stmt::print_icode(ostream & file_buffer)
 
 			break; 
 	case i_op_o1:
-			file_buffer<<" " <<operation_name <<" label";
+			file_buffer<<"\t" <<operation_name <<" label";
 			result->print_ics_opd(file_buffer);
 			file_buffer<<endl;
 			break;
@@ -506,7 +559,7 @@ void Label_IC_Stmt::print_icode(ostream & file_buffer)
 			file_buffer<<endl;
 			file_buffer<<operation_name;
 			result->print_ics_opd(file_buffer);
-			file_buffer<<": ";
+			file_buffer<<":    \t";
 			file_buffer<<endl;
 			break;
 
@@ -606,3 +659,4 @@ Instruction_Descriptor::Instruction_Descriptor()
 }
 
 template class Const_Opd<int>;
+template class Const_Opd<float>;

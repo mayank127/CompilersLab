@@ -205,4 +205,93 @@ public:
 	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
 };
 
+
+class Plus_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Plus_Ast(Ast * temp_lhs, Ast * temp_rhs, int line);
+	~Plus_Ast();
+
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast();
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+class Minus_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Minus_Ast(Ast * temp_lhs, Ast * temp_rhs, int line);
+	~Minus_Ast();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast();
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+
+class Multiplication_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Multiplication_Ast(Ast * temp_lhs, Ast * temp_rhs, int line);
+	~Multiplication_Ast();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast();
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+class Division_Ast:public Ast{
+	Ast* lhs;
+	Ast* rhs;
+public:
+	Division_Ast(Ast * temp_lhs, Ast * temp_rhs, int line);
+	~Division_Ast();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast();
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+class Unary_Ast:public Ast{
+	Ast* lhs;
+public:
+	Unary_Ast(Ast * temp_lhs, int line);
+	~Unary_Ast();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	bool check_ast();
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
+
+class TypeCast_Ast:public Ast{
+	Ast* lhs;
+public:
+	TypeCast_Ast(Ast * temp_lhs, Data_Type temp_data_type, int line);
+	~TypeCast_Ast();
+	void print(ostream & file_buffer);
+	Eval_Result & evaluate(Local_Environment & eval_env, ostream & file_buffer);
+	Data_Type get_data_type();
+
+	Code_For_Ast & compile();
+	Code_For_Ast & compile_and_optimize_ast(Lra_Outcome & lra);
+};
 #endif

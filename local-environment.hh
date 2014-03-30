@@ -34,8 +34,14 @@ using namespace std;
 typedef enum
 {
 	int_result,
+	float_result,
 	void_result
 } Result_Enum;
+
+union ValueSet{
+	int i;
+	float f; 
+};
 
 class Eval_Result;
 class Local_Environment;
@@ -47,7 +53,9 @@ protected:
 
 public:
 	virtual int get_int_value();
+	virtual float get_float_value();
 	virtual void set_value(int value);
+	virtual void set_value(float value);
 
 	virtual bool is_variable_defined();
 	virtual void set_variable_status(bool def);
@@ -60,7 +68,9 @@ class Eval_Result_Value:public Eval_Result
 {
 public:
 	virtual void set_value(int number);
+	virtual void set_value(float value);
 	virtual int get_int_value();
+	virtual float get_float_value();
 
 	virtual bool is_variable_defined() = 0;
 	virtual void set_variable_status(bool def) = 0;
@@ -71,7 +81,7 @@ public:
 
 class Eval_Result_Value_Int:public Eval_Result_Value
 {
-	int value;
+	ValueSet value;
 	bool defined;
 public:
 	Eval_Result_Value_Int();
@@ -79,6 +89,24 @@ public:
 
 	void set_value(int number);
 	int get_int_value();
+
+	void set_variable_status(bool def);
+	bool is_variable_defined();
+
+	void set_result_enum(Result_Enum res);
+	Result_Enum get_result_enum();
+};
+
+class Eval_Result_Value_Float:public Eval_Result_Value
+{
+	ValueSet value;
+	bool defined;
+public:
+	Eval_Result_Value_Float();
+	~Eval_Result_Value_Float();
+
+	void set_value(float number);
+	float get_float_value();
 
 	void set_variable_status(bool def);
 	bool is_variable_defined();
