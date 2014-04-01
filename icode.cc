@@ -301,7 +301,16 @@ void Move_IC_Stmt::print_assembly(ostream & file_buffer)
 	switch (assem_format)
 	{
 	case a_op_r_o1: 
-			file_buffer << "\t" << op_name << " ";
+			file_buffer << "\t" << op_name;
+			if(result->get_opd_type() == float_opd){
+				file_buffer<<".d ";
+			}
+			else if(op_desc.get_op() == load){
+				file_buffer<<"w ";
+			}
+			else{
+				file_buffer<<" ";
+			}
 			result->print_asm_opd(file_buffer);
 			file_buffer << ", ";
 			opd1->print_asm_opd(file_buffer);
@@ -310,7 +319,8 @@ void Move_IC_Stmt::print_assembly(ostream & file_buffer)
 			break; 
 
 	case a_op_o1_r: 
-			file_buffer << "\t" << op_name << " ";
+			file_buffer << "\t" << op_name;
+			file_buffer<<(result->get_opd_type() == float_opd ? ".d ":"w ");
 			opd1->print_asm_opd(file_buffer);
 			file_buffer << ", ";
 			result->print_asm_opd(file_buffer);
@@ -409,6 +419,7 @@ void Compute_IC_Stmt::print_assembly(ostream & file_buffer)
 	case a_op_r_o1_o2: 
 			CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a compute IC Stmt");
 			file_buffer << "\t" << operation_name << " ";
+			file_buffer<<((result->get_opd_type() == float_opd && op_desc.get_op() != mtc1 ) ? ".d":"");
 			result->print_asm_opd(file_buffer);
 			file_buffer << ", ";
 			opd1->print_asm_opd(file_buffer);
@@ -418,7 +429,15 @@ void Compute_IC_Stmt::print_assembly(ostream & file_buffer)
 
 			break; 
 	case a_op_r_o1:
-		break;
+			CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a compute IC Stmt");
+			file_buffer << "\t" << operation_name;
+			file_buffer<<((result->get_opd_type() == float_opd && op_desc.get_op() != mtc1 ) ? ".d":"");
+			file_buffer << ", ";
+			result->print_ics_opd(file_buffer);
+			file_buffer << ", ";
+			opd1->print_ics_opd(file_buffer);
+			file_buffer << "\n";
+			break;
 	default: CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
 				"Intermediate code format not supported");
 		break;
@@ -504,6 +523,7 @@ void Control_Flow_IC_Stmt::print_assembly(ostream & file_buffer)
 			CHECK_INVARIANT (opd1, "Opd1 cannot be NULL for a Control_Flow IC Stmt");
 			CHECK_INVARIANT (opd2, "Opd2 cannot be NULL for a Control_Flow IC Stmt");
 			file_buffer << "\t" << operation_name << " ";
+			file_buffer<<((result->get_opd_type() == float_opd && op_desc.get_op() != mtc1 ) ? ".d":"");
 			opd1->print_asm_opd(file_buffer);
 			file_buffer << ", ";
 			opd2->print_asm_opd(file_buffer);
@@ -515,7 +535,7 @@ void Control_Flow_IC_Stmt::print_assembly(ostream & file_buffer)
 	case a_op_o1:
 			file_buffer<<"\t" <<operation_name <<" label";
 			result->print_asm_opd(file_buffer);
-			file_buffer<<endl;
+			file_buffer<<"    \t"<<endl;
 			break;
 
 	default: CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 

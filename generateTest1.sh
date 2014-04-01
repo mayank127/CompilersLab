@@ -5,8 +5,8 @@ elif [ "$1" -eq 1 ]; then
 	echo "" > out2
 fi
 EFILES=./test_files/*.ecfg
-TOKENS="-icode"
-ETOKENS="-icode -d"
+TOKENS="-icode -compile"
+ETOKENS="-icode -compile -d"
 
 cd test_files/
 make clean

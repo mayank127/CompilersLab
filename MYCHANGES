@@ -1,15 +1,14 @@
 Mayank Meghwanshi 110050012
 Vivek Agarwal 110050042
 
+First made changes according to level 2 to include arithmetic expression and float variables.
 
-in the file Ast.cc:
-	1. Added codes of compile_and_optimize for relationa_expression ast, if_else_ast, goto_ast.
-	2. Updated code for accessing of lra in assignment expression.
+in reg-alloc.cc
+	1. Added instructions and registers corresponding to float and arithmetic expressions.
 
-in file icode.cc:
-	1. Added code to print out assembly instructions for compute, control flow and label icodes.
+in  ast.cc
+	1. written compile statments for Plus_Ast, Minus_Ast, Multiplication_Ast, Division_Ast, TypeCast_Ast, Unary_Ast.
+	2. Modified compile statements according to float statements in all other ast.
 
-in file reg-alloc.cc:
-	1. Added code for changing heuristic/conditions for lra optimization.
-		- Register for a variable not used for write if it is shared among many variables.
-		- If all register are assigned to some variable and no free register available then override optimization to enable running of program.
+in icode.cc
+	1. Added condition to modify printing of icode depending on int/float variables.

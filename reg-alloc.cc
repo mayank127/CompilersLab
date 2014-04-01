@@ -298,13 +298,22 @@ void Machine_Description::initialize_register_table()
 	spim_register_table[f8] = new Register_Descriptor(f8, "f8", float_num, gp_data);
 	spim_register_table[f10] = new Register_Descriptor(f10, "f10", float_num, gp_data);
 	spim_register_table[f12] = new Register_Descriptor(f12, "f12", float_num, gp_data);
+	spim_register_table[f14] = new Register_Descriptor(f14, "f14", float_num, gp_data);
+	spim_register_table[f16] = new Register_Descriptor(f16, "f16", float_num, gp_data);
+	spim_register_table[f18] = new Register_Descriptor(f18, "f18", float_num, gp_data);
+	spim_register_table[f20] = new Register_Descriptor(f20, "f20", float_num, gp_data);
+	spim_register_table[f22] = new Register_Descriptor(f22, "f22", float_num, gp_data);
+	spim_register_table[f24] = new Register_Descriptor(f24, "f24", float_num, gp_data);
+	spim_register_table[f26] = new Register_Descriptor(f26, "f26", float_num, gp_data);
+	spim_register_table[f28] = new Register_Descriptor(f28, "f28", float_num, gp_data);
+	spim_register_table[f30] = new Register_Descriptor(f30, "f30", float_num, gp_data);
 	
 }
 
 void Machine_Description::initialize_instruction_table()
 {
-	spim_instruction_table[store] = new Instruction_Descriptor(store, "store", "sw", "", i_r_op_o1, a_op_o1_r);
-	spim_instruction_table[load] = new Instruction_Descriptor(load, "load", "lw", "", i_r_op_o1, a_op_r_o1);
+	spim_instruction_table[store] = new Instruction_Descriptor(store, "store", "s", "", i_r_op_o1, a_op_o1_r);
+	spim_instruction_table[load] = new Instruction_Descriptor(load, "load", "l", "", i_r_op_o1, a_op_r_o1);
 	spim_instruction_table[imm_load] = new Instruction_Descriptor(imm_load, "iLoad", "li", "", i_r_op_o1, a_op_r_o1);
 
 	spim_instruction_table[sgt] = new Instruction_Descriptor(sgt, "sgt", "sgt", "", i_r_o1_op_o2, a_op_r_o1_o2);
@@ -399,4 +408,6 @@ Register_Descriptor * Machine_Description::get_new_float_register()
 		if (reg_desc->is_free() && reg_desc->get_register_type() == float_num)
 			return reg_desc;
 	}
+	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
+			"Error in get_new_reg or register requirements of input program cannot be met");
 }
