@@ -163,7 +163,7 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 		CHECK_INVARIANT(source_memory, 
 			"Sourse ast pointer cannot be NULL for m2m scenario in lra");
 
-		if (typeid(*destination_memory) == typeid(Number_Ast<int>) || typeid(*destination_memory) == typeid(Relational_Expr_Ast))
+		if (typeid(*destination_memory) != typeid(Name_Ast))
 			destination_register = NULL;
 		else
 		{
@@ -173,7 +173,7 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 				destination_register = NULL;
 		}
 
-		if (typeid(*source_memory) == typeid(Number_Ast<int>) || typeid(*source_memory) == typeid(Relational_Expr_Ast))
+		if (typeid(*source_memory) != typeid(Name_Ast))
 			source_register = NULL;
 		else
 		{
@@ -195,7 +195,10 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 		}
 		else 
 		{
-			result_register = machine_dscr_object.get_new_register();
+			if(typeid(*source_memory) == typeid(Number_Ast<int>) || destination_symbol_entry->get_data_type() == int_data_type)
+				result_register = machine_dscr_object.get_new_register();
+			else if(typeid(*source_memory) == typeid(Number_Ast<float>) || destination_symbol_entry->get_data_type() == float_data_type)
+				result_register = machine_dscr_object.get_new_float_register();
 			is_a_new_register = true;
 			load_needed = true;
 		}
@@ -205,7 +208,7 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 	case mc_2r:
 		CHECK_INVARIANT(source_memory, "Sourse ast pointer cannot be NULL for m2r scenario in lra");
 
-		if (typeid(*source_memory) == typeid(Number_Ast<int>) || typeid(*source_memory) == typeid(Relational_Expr_Ast))
+		if (typeid(*source_memory) != typeid(Name_Ast))
 			source_register = NULL;
 		else
 		{
@@ -221,7 +224,10 @@ void Lra_Outcome::optimize_lra(Lra_Scenario lcase, Ast * destination_memory, Ast
 		}
 		else 
 		{
-			result_register = machine_dscr_object.get_new_register();
+			if(typeid(*source_memory) == typeid(Number_Ast<int>) || (source_symbol_entry != NULL && source_symbol_entry->get_data_type() == int_data_type))
+				result_register = machine_dscr_object.get_new_register();
+			else if(typeid(*source_memory) == typeid(Number_Ast<float>) || (source_symbol_entry != NULL && source_symbol_entry->get_data_type() == float_data_type))
+				result_register = machine_dscr_object.get_new_float_register();
 			is_a_new_register = true;
 			load_needed = true;
 		}
@@ -307,7 +313,6 @@ void Machine_Description::initialize_register_table()
 	spim_register_table[f26] = new Register_Descriptor(f26, "f26", float_num, gp_data);
 	spim_register_table[f28] = new Register_Descriptor(f28, "f28", float_num, gp_data);
 	spim_register_table[f30] = new Register_Descriptor(f30, "f30", float_num, gp_data);
-	
 }
 
 void Machine_Description::initialize_instruction_table()
@@ -326,7 +331,7 @@ void Machine_Description::initialize_instruction_table()
 	spim_instruction_table[mul] = new Instruction_Descriptor(mul, "mul", "mul", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[sub] = new Instruction_Descriptor(sub, "sub", "sub", "", i_r_o1_op_o2, a_op_r_o1_o2);
 	spim_instruction_table[divm] = new Instruction_Descriptor(divm, "div", "div", "", i_r_o1_op_o2, a_op_r_o1_o2);
-	spim_instruction_table[uminus] = new Instruction_Descriptor(uminus, "uminus", "uminus", "", i_r_op_o1, a_op_r_o1);
+	spim_instruction_table[uminus] = new Instruction_Descriptor(uminus, "uminus", "neg", "", i_r_op_o1, a_op_r_o1);
 	spim_instruction_table[mtc1] = new Instruction_Descriptor(mtc1, "mtc1", "mtc1", "", i_r_op_o1, a_op_r_o1);
 	spim_instruction_table[mfc1] = new Instruction_Descriptor(mfc1, "mfc1", "mfc1", "", i_r_op_o1, a_op_r_o1);
 	spim_instruction_table[bne] = new Instruction_Descriptor(bne, "bne", "bne", "", i_o1_o2_op_label, a_o1_o2_op_label);
@@ -375,21 +380,22 @@ Register_Descriptor * Machine_Description::get_new_register()
 	{
 		reg_desc = i->second;
 
-		if (reg_desc->is_free())
+		if (reg_desc->is_free() && reg_desc->get_register_type() == int_num)
 			return reg_desc;
 	}
 
 	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
 	{
 		reg_desc = i->second;
-		reg_desc->clear_lra_symbol_list();
+		if (reg_desc->get_register_type() == int_num)
+			reg_desc->clear_lra_symbol_list();
 	}
 
 	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
 	{
 		reg_desc = i->second;
 
-		if (reg_desc->is_free())
+		if (reg_desc->is_free() && reg_desc->get_register_type() == int_num)
 			return reg_desc;
 	}
 	CHECK_INVARIANT(CONTROL_SHOULD_NOT_REACH, 
@@ -401,6 +407,20 @@ Register_Descriptor * Machine_Description::get_new_float_register()
 	Register_Descriptor * reg_desc;
 
 	map<Spim_Register, Register_Descriptor *>::iterator i;
+	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
+	{
+		reg_desc = i->second;
+
+		if (reg_desc->is_free() && reg_desc->get_register_type() == float_num)
+			return reg_desc;
+	}
+	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
+	{
+		reg_desc = i->second;
+		if (reg_desc->get_register_type() == float_num)
+			reg_desc->clear_lra_symbol_list();
+	}
+
 	for (i = spim_register_table.begin(); i != spim_register_table.end(); i++)
 	{
 		reg_desc = i->second;

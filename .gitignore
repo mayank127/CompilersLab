@@ -16,3 +16,4 @@ cfgpp32
 out*
 *.ic
 *.spim
+*.sym

@@ -5,8 +5,8 @@ elif [ "$1" -eq 1 ]; then
 	echo "" > out2
 fi
 EFILES=./test_files/*.ecfg
-TOKENS="-icode -compile"
-ETOKENS="-icode -compile -d"
+TOKENS="-icode -compile -lra -symtab"
+ETOKENS="-icode -compile -lra -symtab -d"
 
 cd test_files/
 make clean
@@ -50,3 +50,6 @@ done
 # meld out1 out2
 
 #FloatVal.ecfg
+
+diff -r ./test_files ../test_files > out
+diff out1 out2 >>out
