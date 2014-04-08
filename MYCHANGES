@@ -3,12 +3,12 @@ Vivek Agarwal 110050042
 
 First made changes according to level 2 to include arithmetic expression and float variables.
 
-in reg-alloc.cc
-	1. Added instructions and registers corresponding to float and arithmetic expressions.
+in ast.cc
+	1. Added compile and optimize for all Ast and added condition for lra.
 
-in  ast.cc
-	1. written compile statments for Plus_Ast, Minus_Ast, Multiplication_Ast, Division_Ast, TypeCast_Ast, Unary_Ast.
-	2. Modified compile statements according to float statements in all other ast.
+In  reg-alloc.cc
+	1. Modified lra code to include arithmetic operations and float.
+	2. Added inctructions for asm file corresponding to float and arithmetic expressions.
 
-in icode.cc
-	1. Added condition to modify printing of icode depending on int/float variables.
+In icode.cc
+	1. Added conditions to print spim code of arithemtic and float conditions.
